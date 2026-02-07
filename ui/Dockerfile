@@ -1,8 +1,5 @@
 FROM node:24.12-alpine as base
 
-WORKDIR /usr/src/ui
-COPY . .
-
 RUN corepack enable && \
     corepack prepare pnpm@latest-10 --activate
 
