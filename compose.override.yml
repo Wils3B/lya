@@ -1,0 +1,20 @@
+services:
+  lya-api:
+    image: lya-api:dev
+    volumes:
+      - ./api:/usr/src/api
+    environment:
+      - NODE_ENV=development
+    command: ["sh", "-c", "pnpm install && pnpm start:dev"]
+
+  lya-ui:
+    image: lya-ui:dev
+    volumes:
+      - ./ui:/usr/src/ui
+    environment:
+      - NODE_ENV=development
+    command: ["sh", "-c", "pnpm install && pnpm dev --host 0.0.0.0"]
+
+  nginx:
+    volumes:
+      - ./nginx/conf.d/dev.conf:/etc/nginx/conf.d/default.conf:ro

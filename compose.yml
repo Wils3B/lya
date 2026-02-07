@@ -1,0 +1,32 @@
+services:
+  lya-api:
+    build:
+      context: ./api
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+    networks:
+      - lya_network
+
+  lya-ui:
+    build:
+      context: ./ui
+    networks:
+      - lya_network
+
+  nginx:
+    image: nginx:1.29.3-alpine
+    depends_on:
+      lya-ui:
+        condition: service_started
+      lya-api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - lya_network
+
+networks:
+  lya_network:
