@@ -2,7 +2,7 @@ services:
   lya-api:
     image: lya-api:dev
     volumes:
-      - ./api:/usr/src/api
+      - ./api:/home/lyauser/api
     environment:
       - NODE_ENV=development
     command: ["sh", "-c", "pnpm install && pnpm start:dev"]
@@ -10,7 +10,7 @@ services:
   lya-ui:
     image: lya-ui:dev
     volumes:
-      - ./ui:/usr/src/ui
+      - ./ui:/home/lyauser/ui
     environment:
       - NODE_ENV=development
     command: ["sh", "-c", "pnpm install && pnpm dev --host 0.0.0.0"]

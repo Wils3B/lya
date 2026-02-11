@@ -1,0 +1,10 @@
+version: '3'
+
+vars:
+  SERVICE_NAME: 'lya-ui'
+
+tasks:
+  shell:
+    desc: Open a shell in the UI container
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} sh
