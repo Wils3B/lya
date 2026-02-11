@@ -8,3 +8,13 @@ tasks:
     desc: Open a shell in the UI container
     cmds:
       - docker compose exec {{.SERVICE_NAME}} sh
+
+  lint:
+    desc: Lint the API codebase
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm lint
+  
+  format:
+    desc: Format the API codebase
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm format

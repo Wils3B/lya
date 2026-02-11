@@ -13,3 +13,15 @@ tasks:
     desc: List all available tasks
     cmds:
       - task --list-all
+
+  lint:
+    desc: Lint both API and UI codebases
+    deps:
+      - api:lint
+      - ui:lint
+  
+  format:
+    desc: Format both API and UI codebases
+    deps:
+      - api:format
+      - ui:format
