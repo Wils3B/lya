@@ -21,7 +21,14 @@ function setupSwagger(app: INestApplication) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  setupSwagger(app);
+
+  const enableSwagger =
+    process.env.LYA_ENABLE_SWAGGER === 'true' ||
+    process.env.NODE_ENV !== 'production';
+  if (enableSwagger) {
+    setupSwagger(app);
+  }
+
   await app.listen(3000);
 }
 bootstrap();
