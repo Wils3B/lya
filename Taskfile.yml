@@ -1,0 +1,15 @@
+version: '3'
+
+includes:
+  api:
+    taskfile: ./api/Taskfile.yml
+    dir: ./api
+  ui:
+    taskfile: ./ui/Taskfile.yml
+    dir: ./ui
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list-all

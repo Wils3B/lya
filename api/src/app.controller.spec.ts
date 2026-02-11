@@ -12,10 +12,13 @@ describe('AppController', () => {
     }).compile();
   });
 
-  describe('getHello', () => {
-    it('should return "Hello World!"', () => {
+  describe('healthcheck', () => {
+    it('should return the health status', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Hello World!');
+      expect(appController.healthcheck()).toMatchObject({
+        status: 'OK',
+        timestamp: expect.any(String),
+      });
     });
   });
 });
