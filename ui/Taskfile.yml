@@ -10,11 +10,11 @@ tasks:
       - docker compose exec {{.SERVICE_NAME}} sh
 
   lint:
-    desc: Lint the API codebase
+    desc: Lint the UI codebase
     cmds:
       - docker compose exec {{.SERVICE_NAME}} pnpm lint
   
   format:
-    desc: Format the API codebase
+    desc: Format the UI codebase
     cmds:
       - docker compose exec {{.SERVICE_NAME}} pnpm format

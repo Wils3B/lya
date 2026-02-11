@@ -1,7 +1,6 @@
 {
   "name": "lya-api",
-  "private": false,
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A NestJS API for lya, Free OSS to translate your apps",
   "license": "MIT",
   "scripts": {
