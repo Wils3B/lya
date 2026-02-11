@@ -16,12 +16,12 @@ tasks:
 
   lint:
     desc: Lint both API and UI codebases
-    deps:
-      - api:lint
-      - ui:lint
+    cmds:
+      - task: api:lint
+      - task: ui:lint
   
   format:
     desc: Format both API and UI codebases
-    deps:
-      - api:format
-      - ui:format
+    cmds:
+      - task: api:format
+      - task: ui:format
