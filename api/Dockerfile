@@ -5,6 +5,9 @@ ARG USERNAME=lyauser
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
+# Install build tools for native dependencies (sqlite3, esbuild, etc.)
+RUN apk add --no-cache python3 make g++
+
 RUN corepack enable && \
     corepack prepare pnpm@${PNPM_VERSION} --activate && \
     deluser --remove-home node && \

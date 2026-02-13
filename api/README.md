@@ -1,98 +1,102 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# LYA API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The LYA API powers Localise Your Application, the open-source translation management platform. It is built with NestJS and provides HTTP endpoints for managing organizations, projects, locales, translation keys, and translation values.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- NestJS + TypeScript
+- Swagger/OpenAPI for interactive docs
+- Docker-first local development
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Base URL
 
-## Project setup
+In the default dev stack, the API is proxied through Nginx:
+
+- API base: http://localhost/api/
+- Swagger UI: http://localhost/api/
+
+If you access the API container directly, it listens on port 3000.
+
+## Healthcheck
+
+The API exposes a simple healthcheck endpoint:
 
 ```bash
-$ npm install
+curl http://localhost/api/healthcheck
 ```
 
-## Compile and run the project
+Expected response:
+
+```json
+"ok"
+```
+
+## Development (Docker)
+
+From the repo root:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker compose up --build
 ```
 
-## Run tests
+The API service will rebuild on changes when using the dev override stack.
+
+## Local scripts
+
+If you are running the API outside Docker:
 
 ```bash
-# unit tests
-$ npm run test
+pnpm install
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+pnpm start
+pnpm start:dev
+pnpm test
 ```
 
-## Deployment
+## Configuration
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Database
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+The API supports multiple database backends via TypeORM. Configuration is handled via environment variables.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Supported drivers: `mysql`, `mariadb`, `postgres`, `sqlite`, `mongodb`.
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `LYA_DB_TYPE` | Type of database (`mysql`, `mariadb`, `postgres`, `sqlite`, `mongodb`) | `sqlite` |
+| `LYA_DB_HOST` | Database host | `localhost` |
+| `LYA_DB_PORT` | Database port | `3306` (mysql), `5432` (postgres) |
+| `LYA_DB_USERNAME` | Database username | `root` |
+| `LYA_DB_PASSWORD` | Database password | `password` |
+| `LYA_DB_NAME` | Database name | `lya` |
+| `LYA_DB_FILE` | (SQLite only) Path to database file | `lya.sqlite` |
+| `LYA_DB_URL` | (MongoDB) Full connection URL | `mongodb://localhost:27017/lya` |
 
-## Resources
+### ID Strategy
 
-Check out a few resources that may come in handy when working with NestJS:
+The system uses a unified ID strategy:
+- For SQL databases, IDs are auto-incrementing integers.
+- For MongoDB, IDs are ObjectIds.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+The API endpoints handle IDs as strings, automatically converting them based on the active driver.
 
-## Support
+## Planned API (Roadmap)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+The following resources are planned and will evolve as the product ships:
 
-## Stay in touch
+- Organizations and members
+- Projects and environments
+- Locale management
+- Translation keys and values
+- Import/export in common formats (JSON, XML, PHP, etc.)
+- Translation history and audit trail
+- Automated translations via bots and AI
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Troubleshooting
+
+- If Swagger does not load at http://localhost/api/, try the direct container URL at http://localhost:3000/.
+- If `curl /api/healthcheck` fails, confirm Nginx is up and the API container is healthy.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT
