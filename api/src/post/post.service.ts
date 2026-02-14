@@ -15,7 +15,7 @@ export class PostService {
     private readonly postRepository: Repository<Post>,
     private readonly configService: ConfigService
   ) {
-    this.dbType = this.configService.get<string>('LYA_DB_TYPE') || 'sqlite'
+    this.dbType = this.configService.get<string>('LYA_DB_TYPE', 'sqlite')
   }
 
   async create(createPostDto: CreatePostDto): Promise<Post> {

@@ -4,19 +4,8 @@ postgres/data
 mariadb/data
 mongodb/data
 
-# Node modules
-node_modules/
-api/node_modules/
-
-# Build artifacts
-api/dist/
-api/coverage/
-
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
-
-# SQLite database
-*.sqlite
