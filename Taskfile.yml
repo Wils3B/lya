@@ -25,3 +25,43 @@ tasks:
     cmds:
       - task: api:format
       - task: ui:format
+  
+  up:postgres:
+    desc: Start the container with postgres database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.postgres.yml up -d
+  
+  stop:postgres:
+    desc: Stop the container with postgres database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.postgres.yml stop
+
+  up:mysql:
+    desc: Start the container with mysql database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mysql.yml up -d
+  
+  stop:mysql:
+    desc: Stop the container with mysql database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mysql.yml stop
+
+  up:mariadb:
+    desc: Start the container with mariadb database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mariadb.yml up -d
+  
+  stop:mariadb:
+    desc: Stop the container with mariadb database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mariadb.yml stop
+
+  up:mongodb:
+    desc: Start the container with mongodb database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mongodb.yml up -d
+  
+  stop:mongodb:
+    desc: Stop the container with mongodb database
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mongodb.yml stop

@@ -1,0 +1,11 @@
+# Mounted db volumes
+mysql/data
+postgres/data
+mariadb/data
+mongodb/data
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

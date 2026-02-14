@@ -22,14 +22,32 @@
     "pnpm": ">=10.0.0",
     "node": ">=20.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@scarf/scarf",
+      "@swc/core",
+      "esbuild",
+      "sqlite3"
+    ]
+  },
   "dependencies": {
     "@nestjs/common": "^11.0.17",
+    "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.1.11",
     "@nestjs/swagger": "^11.2.6",
+    "@nestjs/typeorm": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
     "dotenv": "^17.2.4",
+    "mongodb": "^6.21.0",
+    "mysql2": "^3.17.0",
+    "pg": "^8.18.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "sqlite3": "^5.1.7",
+    "typeorm": "^0.3.28"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -42,6 +60,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.7",
+    "@types/pg": "^8.16.0",
     "@types/supertest": "^6.0.2",
     "eslint": "9",
     "eslint-config-prettier": "^10.1.8",
@@ -75,11 +94,6 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@nestjs/core",
-      "@swc/core"
-    ]
   }
 }
+

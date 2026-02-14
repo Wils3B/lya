@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:8
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      LYA_DB_USERNAME: lya
+      LYA_DB_PASSWORD: lya
+      LYA_DB_NAME: lya
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/docker-entrypoint-initdb.d/lya-mongodb-init.js:/docker-entrypoint-initdb.d/lya-mongodb-init.js:ro
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping').ok", "--quiet"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - lya_network
+
+  lya-api:
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+networks:
+  lya_network:
