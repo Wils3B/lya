@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { ObjectId } from 'mongodb'
 import { FindOneOptions, Repository } from 'typeorm'
@@ -7,10 +8,15 @@ import { Post } from './entities/post.entity'
 
 @Injectable()
 export class PostService {
+  private readonly dbType: string
+
   constructor(
     @InjectRepository(Post)
-    private readonly postRepository: Repository<Post>
-  ) {}
+    private readonly postRepository: Repository<Post>,
+    private readonly configService: ConfigService
+  ) {
+    this.dbType = this.configService.get<string>('LYA_DB_TYPE', 'sqlite')
+  }
 
   async create(createPostDto: CreatePostDto): Promise<Post> {
     const post = this.postRepository.create(createPostDto)
@@ -50,9 +56,7 @@ export class PostService {
    */
 
   private getWhereCondition(id: string): FindOneOptions<Post> {
-    const dbType = process.env.LYA_DB_TYPE || 'sqlite'
-
-    if (dbType === 'mongodb') {
+    if (this.dbType === 'mongodb') {
       try {
         // Maps to the property decorated with @ObjectIdColumn
         return { where: { id: new ObjectId(id) } }
