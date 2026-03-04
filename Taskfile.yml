@@ -88,24 +88,12 @@ tasks:
   stop:
     desc: Stop the currently active database (reads from .lya-db)
     cmds:
-      - |
-        if [[ ! -f .lya-db ]]; then
-          echo "No active database stored. Use 'task stop:postgres' (or mysql/mariadb/mongodb) explicitly." >&2
-          exit 1
-        fi
-        db_type=$(cat .lya-db)
-        task "stop:$db_type"
+      - ./scripts/stop-db.sh
 
   down:
     desc: Down the currently active database (reads from .lya-db)
     cmds:
-      - |
-        if [[ ! -f .lya-db ]]; then
-          echo "No active database stored. Use 'docker compose down -f compose.yml -f compose.override.yml -f compose.<db_type>.yml' (or mysql/mariadb/mongodb) explicitly." >&2
-          exit 1
-        fi
-        db_type=$(cat .lya-db)
-        docker compose -f compose.yml -f compose.override.yml -f compose."$db_type".yml down
+      - ./scripts/down-db.sh
 
   # Code Quality Tasks
   lint:

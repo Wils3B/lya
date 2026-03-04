@@ -1,10 +1,3 @@
-// Load .env.database before any module imports so that decorators
-// (which execute at import time) can read LYA_DB_TYPE correctly.
-// eslint-disable-next-line import/order
-import { config } from 'dotenv'
-
-config({ path: ['.env.database'] })
-
 import { INestApplication } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
