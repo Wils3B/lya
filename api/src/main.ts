@@ -1,13 +1,13 @@
-import 'dotenv/config'
-
 import { INestApplication } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 
 function setupSwagger(app: INestApplication) {
-  const apiVersion = process.env.LYA_VERSION ?? '0.0.0'
-  const apiPrefix = process.env.LYA_API_PREFIX ?? '/'
+  const configService = app.get(ConfigService)
+  const apiVersion = configService.get<string>('LYA_VERSION', '0.0.0')
+  const apiPrefix = configService.get<string>('LYA_API_PREFIX', '/')
 
   const config = new DocumentBuilder()
     .setTitle('LYA API')
@@ -23,7 +23,10 @@ function setupSwagger(app: INestApplication) {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
-  const enableSwagger = process.env.LYA_ENABLE_SWAGGER === 'true' || process.env.NODE_ENV !== 'production'
+  const configService = app.get(ConfigService)
+
+  const enableSwagger =
+    configService.get('LYA_ENABLE_SWAGGER') === 'true' || configService.get('NODE_ENV') !== 'production'
   if (enableSwagger) {
     setupSwagger(app)
   }

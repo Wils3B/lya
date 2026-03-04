@@ -4,6 +4,9 @@ postgres/data
 mariadb/data
 mongodb/data
 
+# State files
+.lya-db
+
 # IDE
 .idea/
 .vscode/
