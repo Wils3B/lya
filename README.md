@@ -29,6 +29,8 @@ Localise Your Application (lya) is a fully open-source platform to manage transl
 
 ### Development (Docker)
 
+Security warning: The Docker Compose files use insecure default credentials (for example, password: "password", username: "lya"). These are for local development only and must be changed before any non-local deployment.
+
 1. Start the dev stack:
    ```bash
    docker compose up --build

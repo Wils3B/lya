@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 includes:
   api:
@@ -14,54 +14,108 @@ tasks:
     cmds:
       - task --list-all
 
-  lint:
-    desc: Lint both API and UI codebases
+  # Database Configuration
+  set-db:
+    desc: Set api/.env.database for a chosen DB (DB=postgres|mysql|mariadb|mongodb|sqlite)
+    requires:
+      vars: [DB]
     cmds:
-      - task: api:lint
-      - task: ui:lint
-  
-  format:
-    desc: Format both API and UI codebases
-    cmds:
-      - task: api:format
-      - task: ui:format
-  
+      - bash ./scripts/set-db-env.sh {{.DB}}
+
+  # Database Startup Tasks
   up:postgres:
     desc: Start the container with postgres database
     cmds:
+      - task: set-db
+        vars: { DB: postgres }
       - docker compose -f compose.yml -f compose.override.yml -f compose.postgres.yml up -d
-  
+
+  up:mysql:
+    desc: Start the container with mysql database
+    cmds:
+      - task: set-db
+        vars: { DB: mysql }
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mysql.yml up -d
+
+  up:mariadb:
+    desc: Start the container with mariadb database
+    cmds:
+      - task: set-db
+        vars: { DB: mariadb }
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mariadb.yml up -d
+
+  up:mongodb:
+    desc: Start the container with mongodb database
+    cmds:
+      - task: set-db
+        vars: { DB: mongodb }
+      - docker compose -f compose.yml -f compose.override.yml -f compose.mongodb.yml up -d
+
+  up:sqlite:
+    desc: Start the container with sqlite database
+    cmds:
+      - task: set-db
+        vars: { DB: sqlite }
+      - docker compose -f compose.yml -f compose.override.yml up -d
+
+  # Database Stop Tasks
   stop:postgres:
     desc: Stop the container with postgres database
     cmds:
       - docker compose -f compose.yml -f compose.override.yml -f compose.postgres.yml stop
 
-  up:mysql:
-    desc: Start the container with mysql database
-    cmds:
-      - docker compose -f compose.yml -f compose.override.yml -f compose.mysql.yml up -d
-  
   stop:mysql:
     desc: Stop the container with mysql database
     cmds:
       - docker compose -f compose.yml -f compose.override.yml -f compose.mysql.yml stop
 
-  up:mariadb:
-    desc: Start the container with mariadb database
-    cmds:
-      - docker compose -f compose.yml -f compose.override.yml -f compose.mariadb.yml up -d
-  
   stop:mariadb:
     desc: Stop the container with mariadb database
     cmds:
       - docker compose -f compose.yml -f compose.override.yml -f compose.mariadb.yml stop
 
-  up:mongodb:
-    desc: Start the container with mongodb database
-    cmds:
-      - docker compose -f compose.yml -f compose.override.yml -f compose.mongodb.yml up -d
-  
   stop:mongodb:
     desc: Stop the container with mongodb database
     cmds:
       - docker compose -f compose.yml -f compose.override.yml -f compose.mongodb.yml stop
+
+  stop:sqlite:
+    desc: Stop the container with sqlite database (noop, for symmetry)
+    cmds:
+      - docker compose -f compose.yml -f compose.override.yml stop
+
+  # Database Lifecycle Management
+  stop:
+    desc: Stop the currently active database (reads from .lya-db)
+    cmds:
+      - |
+        if [[ ! -f .lya-db ]]; then
+          echo "No active database stored. Use 'task stop:postgres' (or mysql/mariadb/mongodb) explicitly." >&2
+          exit 1
+        fi
+        db_type=$(cat .lya-db)
+        task "stop:$db_type"
+
+  down:
+    desc: Down the currently active database (reads from .lya-db)
+    cmds:
+      - |
+        if [[ ! -f .lya-db ]]; then
+          echo "No active database stored. Use 'docker compose down -f compose.yml -f compose.override.yml -f compose.<db_type>.yml' (or mysql/mariadb/mongodb) explicitly." >&2
+          exit 1
+        fi
+        db_type=$(cat .lya-db)
+        docker compose -f compose.yml -f compose.override.yml -f compose."$db_type".yml down
+
+  # Code Quality Tasks
+  lint:
+    desc: Lint both API and UI codebases
+    cmds:
+      - task: api:lint
+      - task: ui:lint
+
+  format:
+    desc: Format both API and UI codebases
+    cmds:
+      - task: api:format
+      - task: ui:format

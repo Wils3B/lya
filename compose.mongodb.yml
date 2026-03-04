@@ -1,3 +1,6 @@
+#+#+#+#+# WARNING: Insecure default credentials for local development only.
+#+#+#+#+# Change all passwords/usernames before any non-local deployment.
+
 services:
   mongodb:
     image: mongo:8

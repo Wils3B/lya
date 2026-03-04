@@ -10,7 +10,9 @@ import { PostModule } from './post/post.module'
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      cache: true,
       load: [databaseConfig],
+      envFilePath: [`.env.${process.env.NODE_ENV || 'development'}`, '.env.database'],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
