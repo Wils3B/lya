@@ -80,6 +80,55 @@ The system uses a unified ID strategy:
 
 The API endpoints handle IDs as strings, automatically converting them based on the active driver.
 
+## Users Module (CQRS)
+
+The API currently exposes user CRUD endpoints without authentication:
+
+- `POST /users`
+- `GET /users`
+- `GET /users/:id`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
+
+The users module uses the NestJS CQRS pattern:
+
+- **Commands** (`src/users/commands/`) for write actions (`create`, `update`, `delete`)
+- **Queries** (`src/users/queries/`) for read actions (`findAll`, `findOne`)
+- **Handlers** (`src/users/commands/handlers/`, `src/users/queries/handlers/`) for command/query execution
+- **Controller** dispatches via `CommandBus` and `QueryBus`
+
+CQRS is configured at application level in `AppModule` through `CqrsModule.forRoot()`, so the same pattern is ready to be reused by future modules.
+
+To extend this pattern in any module, add a command or query class and register its handler in that module providers.
+
+### Multi-DB ID lookup helper
+
+Multi-DB ID resolution is now implemented in a generic repository base class:
+
+- `src/common/repositories/base.repository.ts` provides `findById(id)` and internally resolves the correct where condition by database type.
+- `src/users/repositories/user.repository.ts` extends the generic base repository and injects config to resolve the current database type once in the repository constructor.
+
+This avoids duplicating ID conversion logic in CQRS handlers and enables reuse for future modules that need the same behavior.
+
+Current lookup behavior remains:
+
+- SQL: string ID → numeric ID with `parseInt`
+- MongoDB: string ID → `ObjectId`
+
+## Input Validation
+
+Validation is enabled globally in `src/main.ts` with Nest's `ValidationPipe`:
+
+- `whitelist: true` strips unknown fields
+- `transform: true` applies runtime payload transformation
+
+DTOs define constraints using `class-validator`. Example from users module:
+
+- `CreateUserDto` validates `name` and `email`
+- `UpdateUserDto` uses `PartialType(CreateUserDto)` for partial updates
+
+When extending endpoints, add a DTO and decorate each field with both `@ApiProperty()` and relevant class-validator decorators.
+
 ## Planned API (Roadmap)
 
 The following resources are planned and will evolve as the product ships:

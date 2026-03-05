@@ -65,4 +65,12 @@ export default defineConfig([
       'import/no-unresolved': 'off', // TypeScript handles this
     },
   },
+  {
+    files: ['**/*.spec.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.e2e-spec.ts', 'test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+    },
+  },
 ])

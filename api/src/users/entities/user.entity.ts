@@ -3,16 +3,12 @@ import { Column, Entity } from 'typeorm'
 import { BaseEntity } from '../../common/entities/base.entity'
 
 @Entity()
-export class Post extends BaseEntity {
+export class User extends BaseEntity {
   @Column()
   @ApiProperty()
-  title: string
+  name: string
 
-  @Column()
+  @Column({ unique: true })
   @ApiProperty()
-  content: string
-
-  @Column({ default: false })
-  @ApiProperty()
-  published: boolean
+  email: string
 }

@@ -17,7 +17,7 @@ describe('AppController', () => {
       const appController = app.get(AppController)
       expect(appController.healthcheck()).toMatchObject({
         status: 'OK',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
         timestamp: expect.any(String),
       })
     })

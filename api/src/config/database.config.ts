@@ -1,9 +1,10 @@
 import { join } from 'path'
 import { registerAs } from '@nestjs/config'
 import { TypeOrmModuleOptions } from '@nestjs/typeorm'
+import { DatabaseType, resolveDatabaseType } from './database-type.enum'
 
 export default registerAs('database', (): TypeOrmModuleOptions => {
-  const type = process.env.LYA_DB_TYPE || 'sqlite'
+  const type = resolveDatabaseType(process.env.LYA_DB_TYPE)
 
   const commonConfig = {
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
@@ -12,8 +13,8 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
   }
 
   switch (type) {
-    case 'mysql':
-    case 'mariadb':
+    case DatabaseType.MYSQL:
+    case DatabaseType.MARIADB:
       return {
         ...commonConfig,
         type: type,
@@ -23,27 +24,27 @@ export default registerAs('database', (): TypeOrmModuleOptions => {
         password: process.env.LYA_DB_PASSWORD || 'password',
         database: process.env.LYA_DB_NAME || 'lya',
       }
-    case 'postgres':
+    case DatabaseType.POSTGRES:
       return {
         ...commonConfig,
-        type: 'postgres',
+        type: DatabaseType.POSTGRES,
         host: process.env.LYA_DB_HOST || 'postgres',
         port: parseInt(process.env.LYA_DB_PORT, 10) || 5432,
         username: process.env.LYA_DB_USERNAME || 'postgres',
         password: process.env.LYA_DB_PASSWORD || 'postgres',
         database: process.env.LYA_DB_NAME || 'lya',
       }
-    case 'mongodb':
+    case DatabaseType.MONGODB:
       return {
         ...commonConfig,
-        type: 'mongodb',
+        type: DatabaseType.MONGODB,
         url: process.env.LYA_DB_URL || 'mongodb://localhost:27017/lya',
       }
-    case 'sqlite':
+    case DatabaseType.SQLITE:
     default:
       return {
         ...commonConfig,
-        type: 'sqlite',
+        type: DatabaseType.SQLITE,
         database: process.env.LYA_DB_FILE || 'lya.sqlite',
       }
   }
