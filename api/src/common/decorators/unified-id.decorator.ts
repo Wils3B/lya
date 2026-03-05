@@ -1,4 +1,5 @@
 import { PrimaryGeneratedColumn, ObjectIdColumn } from 'typeorm'
+import { DatabaseType, resolveDatabaseType } from '../../config/database-type.enum'
 
 /**
  * A decorator that applies the appropriate TypeORM ID column decorator
@@ -6,9 +7,9 @@ import { PrimaryGeneratedColumn, ObjectIdColumn } from 'typeorm'
  */
 export function UnifiedId() {
   return function (target: object, propertyKey: string | symbol) {
-    const dbType = process.env.LYA_DB_TYPE || ''
+    const dbType = resolveDatabaseType(process.env.LYA_DB_TYPE)
 
-    if (dbType === 'mongodb') {
+    if (dbType === DatabaseType.MONGODB) {
       ObjectIdColumn()(target, propertyKey)
     } else {
       PrimaryGeneratedColumn()(target, propertyKey)
