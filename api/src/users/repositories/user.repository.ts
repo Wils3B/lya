@@ -8,6 +8,6 @@ import { User } from '../entities/user.entity'
 @Injectable()
 export class UserRepository extends BaseRepository<User> {
   constructor(dataSource: DataSource, configService: ConfigService) {
-    super(User, dataSource.createEntityManager(), resolveDatabaseType(configService.get<string>('LYA_DB_TYPE')))
+    super(User, dataSource.manager, resolveDatabaseType(configService.get<string>('LYA_DB_TYPE')))
   }
 }

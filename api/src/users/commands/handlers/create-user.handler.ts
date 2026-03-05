@@ -1,15 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
 import { User } from '../../entities/user.entity'
+import { UserRepository } from '../../repositories/user.repository'
 import { CreateUserCommand } from '../create-user.command'
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserHandler implements ICommandHandler<CreateUserCommand, User> {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>
-  ) {}
+  constructor(private readonly userRepository: UserRepository) {}
 
   async execute(command: CreateUserCommand): Promise<User> {
     const user = this.userRepository.create(command.payload)
