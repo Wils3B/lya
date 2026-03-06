@@ -20,7 +20,37 @@ describe('AppController (e2e)', () => {
     await app.close()
   })
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!')
+  it('/healthcheck (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/healthcheck')
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toMatchObject({
+          status: 'ok',
+          info: {
+            database: {
+              status: 'up',
+            },
+            memory_heap: {
+              status: 'up',
+            },
+            memory_rss: {
+              status: 'up',
+            },
+          },
+          error: {},
+          details: {
+            database: {
+              status: 'up',
+            },
+            memory_heap: {
+              status: 'up',
+            },
+            memory_rss: {
+              status: 'up',
+            },
+          },
+        })
+      })
   })
 })
