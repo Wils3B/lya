@@ -18,3 +18,38 @@ tasks:
     desc: Format the API codebase
     cmds:
       - docker compose exec {{.SERVICE_NAME}} pnpm format
+
+  migration:generate:
+    desc: Generate a migration for the active DB (NAME=MigrationName)
+    requires:
+      vars: [NAME]
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm migration:generate src/migrations/{{.DB_TYPE}}/{{.NAME}}
+    vars:
+      DB_TYPE:
+        sh: grep LYA_DB_TYPE .env.database | cut -d= -f2
+
+  migration:create:
+    desc: Create an empty migration for the active DB (NAME=MigrationName)
+    requires:
+      vars: [NAME]
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm migration:create src/migrations/{{.DB_TYPE}}/{{.NAME}}
+    vars:
+      DB_TYPE:
+        sh: grep LYA_DB_TYPE .env.database | cut -d= -f2
+
+  migration:run:
+    desc: Run pending migrations for the active DB
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm migration:run
+
+  migration:revert:
+    desc: Revert the last migration for the active DB
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm migration:revert
+
+  migration:show:
+    desc: Show migration status for the active DB
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm migration:show

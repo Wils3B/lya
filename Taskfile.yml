@@ -107,3 +107,35 @@ tasks:
     cmds:
       - task: api:format
       - task: ui:format
+
+  # Migration Tasks
+  migration:generate:
+    desc: Generate a migration for the active DB (NAME=MigrationName)
+    requires:
+      vars: [NAME]
+    cmds:
+      - task: api:migration:generate
+        vars: { NAME: "{{.NAME}}" }
+
+  migration:create:
+    desc: Create an empty migration for the active DB (NAME=MigrationName)
+    requires:
+      vars: [NAME]
+    cmds:
+      - task: api:migration:create
+        vars: { NAME: "{{.NAME}}" }
+
+  migration:run:
+    desc: Run pending migrations for the active DB
+    cmds:
+      - task: api:migration:run
+
+  migration:revert:
+    desc: Revert the last migration for the active DB
+    cmds:
+      - task: api:migration:revert
+
+  migration:show:
+    desc: Show migration status for the active DB
+    cmds:
+      - task: api:migration:show
