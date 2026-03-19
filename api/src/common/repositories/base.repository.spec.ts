@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { EntityManager } from 'typeorm'
 import { DatabaseType } from '../../config/database-type.enum'
+import { PaginatedResponseDto } from '../dto/paginated-response.dto'
 import { BaseEntity } from '../entities/base.entity'
 import { BaseRepository } from './base.repository'
 
@@ -53,5 +54,38 @@ describe('BaseRepository', () => {
 
     const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { id: number } }
     expect(firstCallArg.where.id).toBe(-1)
+  })
+})
+
+describe('BaseRepository.findPaginated', () => {
+  it('calls findAndCount with correct skip, take, and stable order', async () => {
+    const repository = new TestRepository(DatabaseType.POSTGRES)
+    const items = [{ id: 1 }, { id: 2 }] as TestEntity[]
+    const findAndCountSpy = jest.spyOn(repository, 'findAndCount').mockResolvedValue([items, 10])
+
+    await repository.findPaginated(2, 5)
+
+    expect(findAndCountSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skip: 5,
+        take: 5,
+        order: expect.objectContaining({ createdAt: 'DESC', id: 'DESC' }),
+      })
+    )
+  })
+
+  it('returns a PaginatedResponseDto with correct shape', async () => {
+    const repository = new TestRepository(DatabaseType.POSTGRES)
+    const items = [{ id: 1 }, { id: 2 }] as TestEntity[]
+    jest.spyOn(repository, 'findAndCount').mockResolvedValue([items, 10])
+
+    const result = await repository.findPaginated(2, 5)
+
+    expect(result).toBeInstanceOf(PaginatedResponseDto)
+    expect(result.data).toEqual(items)
+    expect(result.total).toBe(10)
+    expect(result.page).toBe(2)
+    expect(result.limit).toBe(5)
+    expect(result.totalPages).toBe(2)
   })
 })

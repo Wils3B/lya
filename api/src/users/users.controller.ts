@@ -28,8 +28,8 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get paginated users' })
   @Get()
-  findMany(@Query() { page, limit }: PaginationQueryDto): Promise<PaginatedResponseDto<User>> {
-    return this.queryBus.execute<PaginatedResponseDto<User>>(new GetUsersQuery(page, limit))
+  findMany(@Query() pagination: PaginationQueryDto): Promise<PaginatedResponseDto<User>> {
+    return this.queryBus.execute<PaginatedResponseDto<User>>(new GetUsersQuery(pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Get a user by id' })

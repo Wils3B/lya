@@ -18,7 +18,11 @@ export abstract class BaseRepository<TEntity extends BaseEntity> extends Reposit
   }
 
   async findPaginated(page: number, limit: number): Promise<PaginatedResponseDto<TEntity>> {
-    const [data, total] = await this.findAndCount({ skip: (page - 1) * limit, take: limit })
+    const [data, total] = await this.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC', id: 'DESC' } as Parameters<typeof this.findAndCount>[0]['order'],
+    })
     return new PaginatedResponseDto(data, total, page, limit)
   }
 

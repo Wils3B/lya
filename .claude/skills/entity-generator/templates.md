@@ -317,8 +317,8 @@ export class {Entity}Controller {
 
   @ApiOperation({ summary: 'Get paginated {entities}' })
   @Get()
-  findMany(@Query() { page, limit }: PaginationQueryDto): Promise<PaginatedResponseDto<{Entity}>> {
-    return this.queryBus.execute<PaginatedResponseDto<{Entity}>>(new Get{Entities}Query(page, limit))
+  findMany(@Query() pagination: PaginationQueryDto): Promise<PaginatedResponseDto<{Entity}>> {
+    return this.queryBus.execute<PaginatedResponseDto<{Entity}>>(new Get{Entities}Query(pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Get a {entity} by id' })
