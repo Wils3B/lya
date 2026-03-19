@@ -7,8 +7,16 @@ mongodb/data
 # State files
 .lya-db
 
+# SQLite databases
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*.env
+*.env.local
+*.env.*.local

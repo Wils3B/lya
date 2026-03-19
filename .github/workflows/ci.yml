@@ -18,14 +18,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 10
-          cache: true
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: ${{ matrix.workspace }}/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -41,14 +45,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Setup Node
-        uses: actions/setup-node@v6
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 10
-          cache: true
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: api/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

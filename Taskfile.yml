@@ -107,3 +107,35 @@ tasks:
     cmds:
       - task: api:format
       - task: ui:format
+
+  # Migration Tasks (delegate to api namespace)
+  migration:generate:
+    desc: Generate a new migration (NAME=<MigrationName> required)
+    requires:
+      vars: [NAME]
+    cmds:
+      - task: api:migration:generate
+        vars: { NAME: '{{.NAME}}' }
+
+  migration:create:
+    desc: Create a blank migration file (NAME=<MigrationName> required)
+    requires:
+      vars: [NAME]
+    cmds:
+      - task: api:migration:create
+        vars: { NAME: '{{.NAME}}' }
+
+  migration:run:
+    desc: Run pending migrations
+    cmds:
+      - task: api:migration:run
+
+  migration:revert:
+    desc: Revert the last applied migration
+    cmds:
+      - task: api:migration:revert
+
+  migration:show:
+    desc: Show all migrations and their status
+    cmds:
+      - task: api:migration:show
