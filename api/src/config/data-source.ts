@@ -7,6 +7,7 @@ import { join } from 'path'
 const dotenv = require('dotenv') as typeof import('dotenv')
 
 dotenv.config({ path: join(__dirname, '..', '..', '.env') })
+dotenv.config({ path: join(__dirname, '..', '..', `.env.${process.env.NODE_ENV || 'development'}`) })
 dotenv.config({ path: join(__dirname, '..', '..', '.env.database') })
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

@@ -77,18 +77,23 @@ MongoDB is schema-less, so TypeORM cannot diff entities against the database. Al
 Example pattern:
 
 ```typescript
+import { MongoClient } from 'mongodb'
 import { MigrationInterface, QueryRunner } from 'typeorm'
+
+interface MongoDriverShape {
+  queryRunner: { databaseConnection: MongoClient }
+}
 
 export class AddEmailIndex1234567890123 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    const db = queryRunner.connection.driver.mongodb
-    const collection = db.collection('user')
+    const driver = queryRunner.connection.driver as unknown as MongoDriverShape
+    const collection = driver.queryRunner.databaseConnection.db().collection('user')
     await collection.createIndex({ email: 1 }, { unique: true, name: 'IDX_user_email' })
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    const db = queryRunner.connection.driver.mongodb
-    const collection = db.collection('user')
+    const driver = queryRunner.connection.driver as unknown as MongoDriverShape
+    const collection = driver.queryRunner.databaseConnection.db().collection('user')
     await collection.dropIndex('IDX_user_email')
   }
 }
