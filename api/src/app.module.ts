@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database.config'
+import { LocalesModule } from './locales/locales.module'
 import { UsersModule } from './users/users.module'
 
 @Module({
@@ -23,6 +24,7 @@ import { UsersModule } from './users/users.module'
     TerminusModule,
     CqrsModule.forRoot(),
     AuthModule,
+    LocalesModule,
     UsersModule,
   ],
   controllers: [AppController],
