@@ -7,7 +7,7 @@ export abstract class BaseRepository<TEntity extends BaseEntity> extends Reposit
   protected constructor(
     target: EntityTarget<TEntity>,
     manager: EntityManager,
-    private readonly dbType: DatabaseType
+    protected readonly dbType: DatabaseType
   ) {
     super(target, manager)
   }
@@ -28,8 +28,10 @@ export abstract class BaseRepository<TEntity extends BaseEntity> extends Reposit
     }
 
     const parsedId = parseInt(id, 10)
+    // Use -1 (never a valid auto-increment ID) rather than null; TypeORM silently
+    // ignores null WHERE values and would return the first row instead of no rows.
     return {
-      where: { id: (isNaN(parsedId) ? null : parsedId) as TEntity['id'] } as FindOptionsWhere<TEntity>,
+      where: { id: (isNaN(parsedId) ? -1 : parsedId) as TEntity['id'] } as FindOptionsWhere<TEntity>,
     }
   }
 }

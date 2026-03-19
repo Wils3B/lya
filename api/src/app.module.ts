@@ -4,6 +4,7 @@ import { CqrsModule } from '@nestjs/cqrs'
 import { TerminusModule } from '@nestjs/terminus'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AppController } from './app.controller'
+import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database.config'
 import { UsersModule } from './users/users.module'
 
@@ -21,6 +22,7 @@ import { UsersModule } from './users/users.module'
     }),
     TerminusModule,
     CqrsModule.forRoot(),
+    AuthModule,
     UsersModule,
   ],
   controllers: [AppController],

@@ -45,13 +45,13 @@ describe('BaseRepository', () => {
     expect(firstCallArg.where.id).toBe(42)
   })
 
-  it('uses null id condition for SQL databases when id is not numeric', async () => {
+  it('uses -1 id condition for SQL databases when id is not numeric', async () => {
     const repository = new TestRepository(DatabaseType.POSTGRES)
     const findOneSpy = jest.spyOn(repository, 'findOne').mockResolvedValue(null)
 
     await repository.findById('not-a-number')
 
-    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { id: number | null } }
-    expect(firstCallArg.where.id).toBeNull()
+    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { id: number } }
+    expect(firstCallArg.where.id).toBe(-1)
   })
 })

@@ -71,6 +71,33 @@ task api:shell            # Shell into API container, then run pnpm commands
 
 **When to use the host:** Only when no Docker stack is running and setup is explicitly for local development without Docker.
 
+Below are concrete examples for common workflows — both interactive and single-command (non-interactive) modes.
+
+- Interactive (recommended for multi-step work):
+
+```bash
+# open an interactive shell in the API container, then run commands inside it
+task api:shell
+# then, inside the container shell:
+pnpm add some-package       # add a dependency
+pnpm add -D some-dev-package# add a dev dependency
+```
+
+- Non-interactive / single-command (useful for CI or one-off commands):
+
+```bash
+# Add a dependency (pnpm alias) as a single command
+docker compose exec -T lya-api pnpm add <package-name>
+
+# Run tests or lint from the host inside the API container
+docker compose exec -T lya-api pnpm test
+docker compose exec -T lya-api pnpm lint
+```
+
+Notes:
+- Use `-T` with `docker compose exec` when running non-interactive commands from scripts or CI to avoid allocating a pseudo-TTY.
+- `task api:shell` is preferred for iterative work because you stay inside the container environment and can run many commands without re-invoking `docker compose exec`.
+
 ## Architecture
 
 ### Multi-Database Support (critical)
