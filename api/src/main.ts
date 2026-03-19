@@ -1,6 +1,6 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common'
+import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory } from '@nestjs/core'
+import { Reflector, NestFactory } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 
@@ -14,6 +14,7 @@ function setupSwagger(app: INestApplication) {
     .setDescription('API documentation for the LYA application')
     .setVersion(apiVersion)
     .addServer(apiPrefix)
+    .addBearerAuth()
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
@@ -28,6 +29,7 @@ async function bootstrap() {
       transform: true,
     })
   )
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
   const configService = app.get(ConfigService)
 

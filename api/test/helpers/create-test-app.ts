@@ -1,4 +1,5 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common'
+import { ClassSerializerInterceptor, INestApplication, ValidationPipe } from '@nestjs/common'
+import { Reflector } from '@nestjs/core'
 import { Test } from '@nestjs/testing'
 import { App } from 'supertest/types'
 import { AppModule } from '../../src/app.module'
@@ -16,6 +17,7 @@ export async function createTestApp(): Promise<INestApplication<App>> {
       transform: true,
     })
   )
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)))
 
   await app.init()
   return app
