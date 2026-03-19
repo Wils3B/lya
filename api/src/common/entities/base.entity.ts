@@ -7,7 +7,7 @@ import { UnifiedId } from '../decorators/unified-id.decorator'
 export abstract class BaseEntity {
   @UnifiedId()
   @ApiProperty()
-  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : value))
+  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : (value as number)))
   id: number | ObjectId
 
   @CreateDateColumn()
