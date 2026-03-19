@@ -26,6 +26,7 @@ jobs:
         with:
           version: 10
           cache: true
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -49,6 +50,7 @@ jobs:
         with:
           version: 10
           cache: true
+          run_install: false
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
