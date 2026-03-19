@@ -95,6 +95,12 @@ tasks:
     cmds:
       - ./scripts/down-db.sh
 
+  # E2E Test Tasks
+  test:e2e:
+    desc: Run E2E tests inside the API container against the currently configured DB
+    cmds:
+      - task: api:test:e2e
+
   # Code Quality Tasks
   lint:
     desc: Lint both API and UI codebases

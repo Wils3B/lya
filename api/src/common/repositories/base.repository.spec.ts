@@ -20,9 +20,9 @@ describe('BaseRepository', () => {
 
     await repository.findById(id)
 
-    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { id: ObjectId } }
-    expect(firstCallArg.where.id).toBeInstanceOf(ObjectId)
-    expect(firstCallArg.where.id.toHexString()).toBe(id)
+    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { _id: ObjectId } }
+    expect(firstCallArg.where._id).toBeInstanceOf(ObjectId)
+    expect(firstCallArg.where._id.toHexString()).toBe(id)
   })
 
   it('uses null id condition for MongoDB when id is invalid', async () => {
@@ -31,8 +31,8 @@ describe('BaseRepository', () => {
 
     await repository.findById('invalid-object-id')
 
-    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { id: ObjectId | null } }
-    expect(firstCallArg.where.id).toBeNull()
+    const firstCallArg = findOneSpy.mock.calls[0][0] as { where: { _id: ObjectId | null } }
+    expect(firstCallArg.where._id).toBeNull()
   })
 
   it('uses parsed number id condition for SQL databases when id is numeric', async () => {

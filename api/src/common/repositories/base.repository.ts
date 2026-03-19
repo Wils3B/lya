@@ -19,9 +19,11 @@ export abstract class BaseRepository<TEntity extends BaseEntity> extends Reposit
   private getWhereCondition(id: string): FindOneOptions<TEntity> {
     if (this.dbType === DatabaseType.MONGODB) {
       try {
-        return { where: { id: new ObjectId(id) } as unknown as FindOptionsWhere<TEntity> }
+        // TypeORM MongoDB does not map entity property names to DB column names in WHERE
+        // conditions — must use the actual MongoDB field name '_id' directly.
+        return { where: { _id: new ObjectId(id) } as unknown as FindOptionsWhere<TEntity> }
       } catch {
-        return { where: { id: null as unknown as TEntity['id'] } as FindOptionsWhere<TEntity> }
+        return { where: { _id: null } as unknown as FindOptionsWhere<TEntity> }
       }
     }
 

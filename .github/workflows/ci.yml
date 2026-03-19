@@ -65,3 +65,134 @@ jobs:
       - name: Test (unit)
         run: pnpm test
         working-directory: api
+
+  test-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dbms: sqlite
+            LYA_DB_TYPE: sqlite
+            LYA_DB_FILE: lya-test.sqlite
+          - dbms: postgres
+            LYA_DB_TYPE: postgres
+            LYA_DB_HOST: 127.0.0.1
+            LYA_DB_PORT: '5432'
+            LYA_DB_USERNAME: lya
+            LYA_DB_PASSWORD: lya
+            LYA_DB_NAME: lya_test
+          - dbms: mysql
+            LYA_DB_TYPE: mysql
+            LYA_DB_HOST: 127.0.0.1
+            LYA_DB_PORT: '3306'
+            LYA_DB_USERNAME: lya
+            LYA_DB_PASSWORD: lya
+            LYA_DB_NAME: lya_test
+          - dbms: mariadb
+            LYA_DB_TYPE: mariadb
+            LYA_DB_HOST: 127.0.0.1
+            LYA_DB_PORT: '3307'
+            LYA_DB_USERNAME: lya
+            LYA_DB_PASSWORD: lya
+            LYA_DB_NAME: lya_test
+          - dbms: mongodb
+            LYA_DB_TYPE: mongodb
+            LYA_DB_URL: mongodb://localhost:27017/lya_test
+
+    services:
+      postgres:
+        image: postgres:18.1
+        env:
+          POSTGRES_USER: lya
+          POSTGRES_PASSWORD: lya
+          POSTGRES_DB: lya_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mysql:
+        image: mysql:lts
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: lya
+          MYSQL_PASSWORD: lya
+          MYSQL_DATABASE: lya_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -ulya -plya"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mariadb:
+        image: mariadb:lts
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_USER: lya
+          MARIADB_PASSWORD: lya
+          MARIADB_DATABASE: lya_test
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'quit(0)'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      LYA_DB_TYPE: ${{ matrix.LYA_DB_TYPE }}
+      LYA_DB_HOST: ${{ matrix.LYA_DB_HOST || '' }}
+      LYA_DB_PORT: ${{ matrix.LYA_DB_PORT || '' }}
+      LYA_DB_USERNAME: ${{ matrix.LYA_DB_USERNAME || '' }}
+      LYA_DB_PASSWORD: ${{ matrix.LYA_DB_PASSWORD || '' }}
+      LYA_DB_NAME: ${{ matrix.LYA_DB_NAME || '' }}
+      LYA_DB_FILE: ${{ matrix.LYA_DB_FILE || '' }}
+      LYA_DB_URL: ${{ matrix.LYA_DB_URL || '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 10
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
+          cache-dependency-path: api/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: api
+
+      - name: Test (E2E) — ${{ matrix.dbms }}
+        run: pnpm test:e2e --json --outputFile=test-results.json
+        working-directory: api
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-${{ matrix.dbms }}
+          path: api/test-results.json
