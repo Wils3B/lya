@@ -19,6 +19,11 @@ tasks:
     cmds:
       - docker compose exec {{.SERVICE_NAME}} pnpm format
 
+  test:e2e:
+    desc: Run E2E tests inside the API container
+    cmds:
+      - docker compose exec {{.SERVICE_NAME}} pnpm test:e2e
+
   migration:generate:
     desc: Generate a new migration (NAME=<MigrationName> required)
     requires:
