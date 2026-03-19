@@ -72,6 +72,7 @@ describe('AuthController (e2e)', () => {
       const { body: loginBody } = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: TEST_USER.email, password: TEST_USER.password })
+        .expect(200)
 
       const { body } = await request(app.getHttpServer())
         .post('/auth/refresh')
@@ -88,6 +89,7 @@ describe('AuthController (e2e)', () => {
       const { body: loginBody } = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: TEST_USER.email, password: TEST_USER.password })
+        .expect(200)
 
       await request(app.getHttpServer())
         .post('/auth/refresh')
@@ -114,6 +116,7 @@ describe('AuthController (e2e)', () => {
       const { body: loginBody } = await request(app.getHttpServer())
         .post('/auth/login')
         .send({ email: TEST_USER.email, password: TEST_USER.password })
+        .expect(200)
 
       await request(app.getHttpServer())
         .get('/users')

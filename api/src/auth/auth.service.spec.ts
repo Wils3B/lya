@@ -25,7 +25,7 @@ describe('AuthService', () => {
   let service: AuthService
   let userRepository: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'updateRefreshTokenHash'>>
   let jwtService: jest.Mocked<Pick<JwtService, 'sign'>>
-  let configService: jest.Mocked<Pick<ConfigService, 'get'>>
+  let configService: jest.Mocked<Pick<ConfigService, 'get' | 'getOrThrow'>>
 
   beforeEach(() => {
     userRepository = {
@@ -37,6 +37,7 @@ describe('AuthService', () => {
     }
     configService = {
       get: jest.fn().mockReturnValue('secret'),
+      getOrThrow: jest.fn().mockReturnValue('secret'),
     }
 
     service = new AuthService(

@@ -41,16 +41,16 @@ export class AuthService {
     const accessToken = this.jwtService.sign(
       { sub, email: user.email },
       {
-        secret: this.configService.get<string>('LYA_JWT_SECRET', 'default-jwt-secret'),
-        expiresIn: this.configService.get('LYA_JWT_EXPIRY', '15m'), // StringValue not directly importable
+        secret: this.configService.getOrThrow<string>('LYA_JWT_SECRET'),
+        expiresIn: this.configService.get('LYA_JWT_EXPIRY', '15m'), // ms StringValue not directly importable as transitive dep
       }
     )
 
     const refreshToken = this.jwtService.sign(
       { sub },
       {
-        secret: this.configService.get<string>('LYA_JWT_REFRESH_SECRET', 'default-refresh-secret'),
-        expiresIn: this.configService.get('LYA_JWT_REFRESH_EXPIRY', '7d'), // StringValue not directly importable
+        secret: this.configService.getOrThrow<string>('LYA_JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get('LYA_JWT_REFRESH_EXPIRY', '7d'),
       }
     )
 

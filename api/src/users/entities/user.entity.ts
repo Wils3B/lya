@@ -14,6 +14,7 @@ export class User extends BaseEntity {
   email: string
 
   @Column({ select: false })
+  @ApiProperty({ writeOnly: true, minLength: 8 })
   @Exclude()
   password: string
 
