@@ -1,19 +1,20 @@
-import { Repository } from 'typeorm'
+import { PaginatedResponseDto } from '../../../common/dto/paginated-response.dto'
 import { User } from '../../entities/user.entity'
+import { UserRepository } from '../../repositories/user.repository'
+import { GetUsersQuery } from '../get-users.query'
 import { GetUsersHandler } from './get-users.handler'
 
 describe('GetUsersHandler', () => {
-  it('returns all users', async () => {
+  it('returns paginated users', async () => {
     const users = [{ id: 1, name: 'Alice', email: 'alice@example.com' }] as User[]
-    const findMock = jest.fn().mockResolvedValue(users)
-    const repo = {
-      find: findMock,
-    } as unknown as Repository<User>
+    const paginated = new PaginatedResponseDto(users, 1, 1, 20)
+    const findPaginatedMock = jest.fn().mockResolvedValue(paginated)
+    const repo = { findPaginated: findPaginatedMock } as unknown as UserRepository
 
     const handler = new GetUsersHandler(repo)
-    const result = await handler.execute()
+    const result = await handler.execute(new GetUsersQuery(1, 20))
 
-    expect(findMock).toHaveBeenCalled()
-    expect(result).toEqual(users)
+    expect(findPaginatedMock).toHaveBeenCalledWith(1, 20)
+    expect(result).toEqual(paginated)
   })
 })

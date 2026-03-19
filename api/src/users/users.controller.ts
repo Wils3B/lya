@@ -1,7 +1,9 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CommandBus, QueryBus } from '@nestjs/cqrs'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto'
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto'
 import { CreateUserCommand, DeleteUserCommand, UpdateUserCommand } from './commands'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
@@ -24,10 +26,10 @@ export class UsersController {
     return this.commandBus.execute<User>(new CreateUserCommand(createUserDto))
   }
 
-  @ApiOperation({ summary: 'Get all users' })
+  @ApiOperation({ summary: 'Get paginated users' })
   @Get()
-  findAll(): Promise<User[]> {
-    return this.queryBus.execute<User[]>(new GetUsersQuery())
+  findMany(@Query() pagination: PaginationQueryDto): Promise<PaginatedResponseDto<User>> {
+    return this.queryBus.execute<PaginatedResponseDto<User>>(new GetUsersQuery(pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Get a user by id' })

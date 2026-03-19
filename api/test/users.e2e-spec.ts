@@ -115,7 +115,10 @@ describe('UsersController (e2e)', () => {
         .get('/users')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
-      expect(body).toHaveLength(1)
+      expect(body).toHaveProperty('data')
+      expect(body.data).toHaveLength(1)
+      expect(body.data[0]).toMatchObject({ name: AUTH_USER.name, email: AUTH_USER.email })
+      expect(body.total).toBe(1)
     })
 
     it('returns all users', async () => {
@@ -134,7 +137,7 @@ describe('UsersController (e2e)', () => {
         .get('/users')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
-      expect(body.length).toBeGreaterThanOrEqual(2)
+      expect(body.total).toBeGreaterThanOrEqual(2)
     })
 
     it('rejects request without token', async () => {

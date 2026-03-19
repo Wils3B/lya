@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb'
 import { EntityManager, EntityTarget, FindOneOptions, FindOptionsWhere, Repository } from 'typeorm'
 import { DatabaseType } from '../../config/database-type.enum'
+import { PaginatedResponseDto } from '../dto/paginated-response.dto'
 import { BaseEntity } from '../entities/base.entity'
 
 export abstract class BaseRepository<TEntity extends BaseEntity> extends Repository<TEntity> {
@@ -14,6 +15,15 @@ export abstract class BaseRepository<TEntity extends BaseEntity> extends Reposit
 
   findById(id: string): Promise<TEntity | null> {
     return this.findOne(this.getWhereCondition(id))
+  }
+
+  async findPaginated(page: number, limit: number): Promise<PaginatedResponseDto<TEntity>> {
+    const [data, total] = await this.findAndCount({
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { createdAt: 'DESC', id: 'DESC' } as Parameters<typeof this.findAndCount>[0]['order'],
+    })
+    return new PaginatedResponseDto(data, total, page, limit)
   }
 
   private getWhereCondition(id: string): FindOneOptions<TEntity> {
