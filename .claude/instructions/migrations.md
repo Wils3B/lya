@@ -68,5 +68,5 @@ task migration:revert   # reverts last applied migration
 ## Important Notes
 
 - `data-source.ts` uses `require()` for TypeORM/entity imports (not `import`) so that `dotenv.config()` runs before `@UnifiedId()` decorator executes. Do not convert these to `import` statements.
-- `synchronize: true` is set for non-production — this auto-syncs schema in dev but migrations are still available and should be maintained.
-- In production, `migrationsRun: true` auto-applies pending migrations on startup.
+- `synchronize: false` is set for all environments.
+- `migrationsRun: true` auto-applies pending migrations on startup.
