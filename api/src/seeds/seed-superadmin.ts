@@ -33,7 +33,7 @@ async function seedSuperAdmin(): Promise<void> {
 
   try {
     const repo = dataSource.getRepository(User)
-    const existing = await repo.findOne({ where: { email } as never })
+    const existing = await repo.findOne({ where: [{ email }, { username }] as never })
 
     if (existing) {
       console.log(`Superadmin already exists (${email}). Nothing to do.`)

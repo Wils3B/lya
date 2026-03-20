@@ -8,6 +8,8 @@ export class CreateUserDto {
   name: string
 
   @ApiProperty({ description: 'Alphanumeric with hyphens/underscores, 3-30 characters' })
+  @IsString()
+  @IsNotEmpty()
   @Matches(/^[a-zA-Z0-9_-]{3,30}$/, {
     message: 'username must be 3-30 characters and contain only letters, numbers, hyphens, or underscores',
   })
