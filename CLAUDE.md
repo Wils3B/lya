@@ -159,3 +159,6 @@ Example structure:
   skills/
     database-setup.md
 ```
+
+## Code review handle
+See the repository's code review guidance: [Code Review Instructions](.claude/instructions/code-review.md).
