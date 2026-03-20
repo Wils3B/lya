@@ -16,8 +16,13 @@ describe('CreateUserHandler', () => {
       save: saveMock,
     } as unknown as Repository<User>
 
-    const payload = { name: 'Alice', email: 'alice@example.com', password: 'plaintext' }
-    const userWithHashedPassword = { name: 'Alice', email: 'alice@example.com', password: 'hashed-password' }
+    const payload = { name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'plaintext' }
+    const userWithHashedPassword = {
+      name: 'Alice',
+      username: 'alice',
+      email: 'alice@example.com',
+      password: 'hashed-password',
+    }
     const savedUser = { id: 1, ...userWithHashedPassword }
 
     createMock.mockReturnValue(userWithHashedPassword)

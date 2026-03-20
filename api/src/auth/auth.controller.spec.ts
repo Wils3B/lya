@@ -20,7 +20,7 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('delegates to authService.login and returns tokens', async () => {
-      const dto: LoginDto = { email: 'alice@example.com', password: 'password123' }
+      const dto: LoginDto = { identifier: 'alice@example.com', password: 'password123' }
       const result = await controller.login(dto)
       expect(authService.login).toHaveBeenCalledWith(dto)
       expect(result).toEqual(tokens)

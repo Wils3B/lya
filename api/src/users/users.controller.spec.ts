@@ -31,7 +31,7 @@ describe('UsersController', () => {
   })
 
   it('creates a user via command bus', async () => {
-    const dto: CreateUserDto = { name: 'Alice', email: 'alice@example.com', password: 'password123' }
+    const dto: CreateUserDto = { name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' }
     const result = { id: 1, ...dto }
     commandBus.execute.mockResolvedValue(result)
 

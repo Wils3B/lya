@@ -21,6 +21,7 @@ async function seedSuperAdmin(): Promise<void> {
   const password = process.env.LYA_SUPERADMIN_PASSWORD
   const email = process.env.LYA_SUPERADMIN_EMAIL ?? 'superadmin@lya.app'
   const name = process.env.LYA_SUPERADMIN_NAME ?? 'Super Admin'
+  const username = process.env.LYA_SUPERADMIN_USERNAME ?? 'superadmin'
 
   if (!password?.trim()) {
     console.error('Error: LYA_SUPERADMIN_PASSWORD is not set or empty. Set it and re-run.')
@@ -32,7 +33,7 @@ async function seedSuperAdmin(): Promise<void> {
 
   try {
     const repo = dataSource.getRepository(User)
-    const existing = await repo.findOne({ where: { email } as never })
+    const existing = await repo.findOne({ where: [{ email }, { username }] as never })
 
     if (existing) {
       console.log(`Superadmin already exists (${email}). Nothing to do.`)
@@ -40,9 +41,9 @@ async function seedSuperAdmin(): Promise<void> {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const user = repo.create({ name, email, password: hashedPassword })
+    const user = repo.create({ name, username, email, password: hashedPassword })
     await repo.save(user)
-    console.log(`Superadmin created successfully (${email}).`)
+    console.log(`Superadmin created successfully (${email}, @${username}).`)
   } finally {
     await dataSource.destroy()
   }

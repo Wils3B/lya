@@ -18,11 +18,13 @@ export class InitialIndexes1742252400000 implements MigrationInterface {
     }
 
     await collection.createIndex({ email: 1 }, { unique: true, name: 'IDX_user_email' })
+    await collection.createIndex({ username: 1 }, { unique: true, name: 'IDX_user_username' })
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const driver = queryRunner.connection.driver as unknown as MongoDriverShape
     const collection = driver.queryRunner.databaseConnection.db().collection('user')
     await collection.dropIndex('IDX_user_email')
+    await collection.dropIndex('IDX_user_username')
   }
 }

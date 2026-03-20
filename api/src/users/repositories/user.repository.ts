@@ -12,17 +12,19 @@ export class UserRepository extends BaseRepository<User> {
     super(User, dataSource.manager, resolveDatabaseType(configService.get<string>('LYA_DB_TYPE')))
   }
 
-  findByEmail(email: string): Promise<User | null> {
+  findByEmailOrUsername(identifier: string): Promise<User | null> {
     if (this.dbType === DatabaseType.MONGODB) {
+      const escaped = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(`^${escaped}$`, 'i')
       return this.manager.getMongoRepository(User).findOne({
-        where: { email },
-        select: ['id', 'name', 'email', 'password', 'refreshTokenHash', 'createdAt', 'updatedAt'],
+        where: { $or: [{ email: regex }, { username: regex }] } as never,
+        select: ['id', 'name', 'email', 'username', 'password', 'refreshTokenHash', 'createdAt', 'updatedAt'],
       } as never)
     }
     return this.createQueryBuilder('user')
       .addSelect('user.password')
       .addSelect('user.refreshTokenHash')
-      .where('user.email = :email', { email })
+      .where('LOWER(user.email) = LOWER(:identifier) OR LOWER(user.username) = LOWER(:identifier)', { identifier })
       .getOne()
   }
 
