@@ -8,13 +8,21 @@ interface MongoDriverShape {
 export class InitialIndexes1742252400000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const driver = queryRunner.connection.driver as unknown as MongoDriverShape
-    const collection = driver.queryRunner.databaseConnection.db().collection('user')
+    const db = driver.queryRunner.databaseConnection.db()
 
-    // Drop any existing unique index on email (e.g. auto-created by synchronize) before creating the named one
+    const existingCollections = await db.listCollections({ name: 'user' }).toArray()
+    if (existingCollections.length === 0) {
+      await db.createCollection('user')
+    }
+
+    const collection = db.collection('user')
     const indexes = await collection.indexes()
-    const existingEmailIndex = indexes.find((idx) => idx['key']?.email !== undefined && idx['unique'])
-    if (existingEmailIndex) {
-      await collection.dropIndex(String(existingEmailIndex['name']))
+
+    for (const field of ['email', 'username'] as const) {
+      const existing = indexes.find((idx) => idx['key']?.[field] !== undefined && idx['unique'])
+      if (existing) {
+        await collection.dropIndex(String(existing['name']))
+      }
     }
 
     await collection.createIndex({ email: 1 }, { unique: true, name: 'IDX_user_email' })

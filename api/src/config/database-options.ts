@@ -8,8 +8,8 @@ export function buildDataSourceOptions(type?: string): DataSourceOptions {
   const commonConfig = {
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
     migrations: [join(__dirname, '..', 'migrations', dbType, '*.{ts,js}')],
-    migrationsRun: process.env.NODE_ENV === 'production',
-    synchronize: process.env.NODE_ENV !== 'production',
+    migrationsRun: true,
+    synchronize: false,
     logging: process.env.NODE_ENV !== 'production',
   }
 

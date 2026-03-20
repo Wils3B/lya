@@ -25,23 +25,18 @@ if (missingEnvVars.length > 0) {
   );
   quit(1);
 }
-// Switch to the LYA database
-db = db.getSiblingDB(dbName);
+const testDbName = dbName + '_test';
 
-// Create the LYA user with full privileges on the database
-db.createUser({
-  user: username,
-  pwd: password,
-  roles: [
-    {
-      role: 'readWrite',
-      db: dbName
-    },
-    {
-      role: 'dbAdmin',
-      db: dbName
-    }
-  ]
-});
-
-print(`User '${username}' created with full privileges on database '${dbName}'`);
+// Create the LYA user in both the main and test databases so each URL authenticates independently.
+for (const name of [dbName, testDbName]) {
+  db = db.getSiblingDB(name);
+  db.createUser({
+    user: username,
+    pwd: password,
+    roles: [
+      { role: 'readWrite', db: name },
+      { role: 'dbAdmin', db: name },
+    ]
+  });
+  print(`User '${username}' created with full privileges on '${name}'.`);
+}

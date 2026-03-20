@@ -63,12 +63,18 @@ describe('databaseConfig', () => {
     expect(config.url).toBe('mongodb://localhost:27017/lya')
   })
 
-  it('disables synchronize and logging in production', () => {
+  it('always disables synchronize and enables migrations', () => {
+    const config = databaseConfig()
+
+    expect(config.synchronize).toBe(false)
+    expect(config.migrationsRun).toBe(true)
+  })
+
+  it('disables logging in production', () => {
     process.env.NODE_ENV = 'production'
 
     const config = databaseConfig()
 
-    expect(config.synchronize).toBe(false)
     expect(config.logging).toBe(false)
   })
 })
