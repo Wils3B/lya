@@ -10,14 +10,22 @@ export class SeedLocales1742512800000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const driver = queryRunner.connection.driver as unknown as MongoDriverShape
     const collection = driver.queryRunner.databaseConnection.db().collection('locale')
-    // Store code as _id — matches how TypeORM persists @PrimaryColumn() for MongoDB.
-    // Do NOT include a separate `code` field: TypeORM reads _id back into the code property.
-    await collection.insertMany(
+    // Store code as _id AND as code. TypeORM's @PrimaryColumn() writes to _id on insert but reads
+    // back using the property/column name ('code'). Both fields must be present for round-trip correctness.
+    // Use upsert so the migration is idempotent and safe to run against a DB with stale seed data.
+    await collection.bulkWrite(
       LOCALE_SEED_DATA.map((l) => ({
-        _id: l.code as never,
-        name: l.name,
-        nativeName: l.nativeName,
-        direction: l.direction,
+        replaceOne: {
+          filter: { _id: l.code as never },
+          replacement: {
+            _id: l.code as never,
+            code: l.code,
+            name: l.name,
+            nativeName: l.nativeName,
+            direction: l.direction,
+          },
+          upsert: true,
+        },
       }))
     )
   }
