@@ -14,11 +14,11 @@ export class InviteMemberHandler implements ICommandHandler<InviteMemberCommand,
       throw new ConflictException('User is already a member of this organisation')
     }
 
-    const member = this.memberRepository.create({
-      organisationId: command.organisationId as unknown as number,
-      userId: command.targetUserId as unknown as number,
-      role: command.role ?? OrganisationRole.STANDARD,
-    })
+    const member = this.memberRepository.createMembership(
+      command.organisationId,
+      command.targetUserId,
+      command.role ?? OrganisationRole.STANDARD
+    )
     return this.memberRepository.save(member)
   }
 }

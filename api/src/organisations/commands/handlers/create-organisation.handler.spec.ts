@@ -15,10 +15,11 @@ describe('CreateOrganisationHandler', () => {
       save: orgSave,
     } as unknown as OrganisationRepository
 
-    const memberCreate = jest.fn().mockReturnValue({})
-    const memberSave = jest.fn().mockResolvedValue({})
+    const newMember = {}
+    const memberCreateMembership = jest.fn().mockReturnValue(newMember)
+    const memberSave = jest.fn().mockResolvedValue(newMember)
     const memberRepo = {
-      create: memberCreate,
+      createMembership: memberCreateMembership,
       save: memberSave,
     } as unknown as OrganisationMemberRepository
 
@@ -27,9 +28,7 @@ describe('CreateOrganisationHandler', () => {
 
     expect(orgCreate).toHaveBeenCalledWith(expect.objectContaining({ name: 'Acme', slug: 'acme' }))
     expect(orgSave).toHaveBeenCalled()
-    expect(memberCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ organisationId: 1, role: OrganisationRole.OWNER })
-    )
+    expect(memberCreateMembership).toHaveBeenCalledWith('1', '42', OrganisationRole.OWNER)
     expect(memberSave).toHaveBeenCalled()
     expect(result).toBe(savedOrg)
   })
@@ -41,7 +40,7 @@ describe('CreateOrganisationHandler', () => {
       save: jest.fn().mockResolvedValue({ id: 1 }),
     } as unknown as OrganisationRepository
     const memberRepo = {
-      create: jest.fn().mockReturnValue({}),
+      createMembership: jest.fn().mockReturnValue({}),
       save: jest.fn().mockResolvedValue({}),
     } as unknown as OrganisationMemberRepository
 
@@ -49,5 +48,15 @@ describe('CreateOrganisationHandler', () => {
     await handler.execute(new CreateOrganisationCommand({ name: 'My Cool Org!' }, '1'))
 
     expect(orgCreate).toHaveBeenCalledWith(expect.objectContaining({ slug: 'my-cool-org' }))
+  })
+
+  it('throws BadRequestException when name produces an empty slug', async () => {
+    const orgRepo = {} as unknown as OrganisationRepository
+    const memberRepo = {} as unknown as OrganisationMemberRepository
+
+    const handler = new CreateOrganisationHandler(orgRepo, memberRepo)
+    await expect(handler.execute(new CreateOrganisationCommand({ name: '!!!' }, '1'))).rejects.toThrow(
+      'Organisation name must contain at least one alphanumeric character'
+    )
   })
 })

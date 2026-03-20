@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common'
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 import { OrganisationRole } from '../../entities/organisation-member.entity'
 import { Organisation } from '../../entities/organisation.entity'
@@ -15,14 +16,13 @@ export class CreateOrganisationHandler implements ICommandHandler<CreateOrganisa
 
   async execute(command: CreateOrganisationCommand): Promise<Organisation> {
     const { name, description } = command.payload
-    const org = this.organisationRepository.create({ name, slug: generateSlug(name), description: description ?? null })
+    const slug = generateSlug(name)
+    if (!slug) throw new BadRequestException('Organisation name must contain at least one alphanumeric character')
+
+    const org = this.organisationRepository.create({ name, slug, description: description ?? null })
     const savedOrg = await this.organisationRepository.save(org)
 
-    const member = this.memberRepository.create({
-      organisationId: savedOrg.id as unknown as number,
-      userId: command.userId as unknown as number,
-      role: OrganisationRole.OWNER,
-    })
+    const member = this.memberRepository.createMembership(String(savedOrg.id), command.userId, OrganisationRole.OWNER)
     await this.memberRepository.save(member)
 
     return savedOrg

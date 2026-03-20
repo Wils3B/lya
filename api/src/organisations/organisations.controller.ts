@@ -19,6 +19,7 @@ import {
 import { RequiredOrgRole } from './decorators/required-org-role.decorator'
 import { CreateOrganisationDto } from './dto/create-organisation.dto'
 import { InviteMemberDto } from './dto/invite-member.dto'
+import { TransferOwnershipDto } from './dto/transfer-ownership.dto'
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto'
 import { UpdateOrganisationDto } from './dto/update-organisation.dto'
 import { OrganisationMember, OrganisationRole } from './entities/organisation-member.entity'
@@ -89,13 +90,13 @@ export class OrganisationsController {
   @Post(':id/transfer-ownership')
   async transferOwnership(
     @Param('id') id: string,
-    @Body() body: { userId: string },
+    @Body() dto: TransferOwnershipDto,
     @CurrentUser() user: CurrentUserPayload
   ): Promise<OrganisationMember> {
     const member = await this.commandBus.execute<OrganisationMember | null>(
-      new TransferOwnershipCommand(id, user.id, body.userId)
+      new TransferOwnershipCommand(id, user.id, dto.userId)
     )
-    if (!member) throw new NotFoundException(`User ${body.userId} is not a member of this organisation`)
+    if (!member) throw new NotFoundException(`User ${dto.userId} is not a member of this organisation`)
     return member
   }
 

@@ -5,12 +5,27 @@ import { DataSource, FindOptionsWhere } from 'typeorm'
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto'
 import { BaseRepository } from '../../common/repositories/base.repository'
 import { DatabaseType, resolveDatabaseType } from '../../config/database-type.enum'
-import { OrganisationMember } from '../entities/organisation-member.entity'
+import { OrganisationMember, OrganisationRole } from '../entities/organisation-member.entity'
 
 @Injectable()
 export class OrganisationMemberRepository extends BaseRepository<OrganisationMember> {
   constructor(dataSource: DataSource, configService: ConfigService) {
     super(OrganisationMember, dataSource.manager, resolveDatabaseType(configService.get<string>('LYA_DB_TYPE')))
+  }
+
+  createMembership(organisationId: string, userId: string, role: OrganisationRole): OrganisationMember {
+    if (this.dbType === DatabaseType.MONGODB) {
+      return this.create({
+        organisationId: new ObjectId(organisationId) as unknown as number,
+        userId: new ObjectId(userId) as unknown as number,
+        role,
+      })
+    }
+    return this.create({
+      organisationId: parseInt(organisationId, 10) as unknown as number,
+      userId: parseInt(userId, 10) as unknown as number,
+      role,
+    })
   }
 
   findMembership(organisationId: string, userId: string): Promise<OrganisationMember | null> {

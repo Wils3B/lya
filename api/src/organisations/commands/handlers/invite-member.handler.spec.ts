@@ -18,17 +18,17 @@ describe('InviteMemberHandler', () => {
 
   it('creates a membership with the given role', async () => {
     const newMember = { role: OrganisationRole.ADMINISTRATOR } as OrganisationMember
-    const memberCreate = jest.fn().mockReturnValue(newMember)
+    const memberCreateMembership = jest.fn().mockReturnValue(newMember)
     const memberRepo = {
       findMembership: jest.fn().mockResolvedValue(null),
-      create: memberCreate,
+      createMembership: memberCreateMembership,
       save: jest.fn().mockResolvedValue(newMember),
     } as unknown as OrganisationMemberRepository
 
     const handler = new InviteMemberHandler(memberRepo)
     const result = await handler.execute(new InviteMemberCommand('1', 'user42', OrganisationRole.ADMINISTRATOR))
 
-    expect(memberCreate).toHaveBeenCalledWith(expect.objectContaining({ role: OrganisationRole.ADMINISTRATOR }))
+    expect(memberCreateMembership).toHaveBeenCalledWith('1', 'user42', OrganisationRole.ADMINISTRATOR)
     expect(result).toBe(newMember)
   })
 })

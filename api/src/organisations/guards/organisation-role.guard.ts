@@ -53,7 +53,7 @@ export class OrganisationRoleGuard implements CanActivate {
 
   private async resolveOrgId(identifier: string): Promise<string | null> {
     // If it looks like a pure integer or MongoDB ObjectId hex, use it directly
-    if (/^\d+$/.test(identifier) || /^[a-f0-9]{24}$/.test(identifier)) {
+    if (/^\d+$/.test(identifier) || /^[a-f0-9]{24}$/i.test(identifier)) {
       return identifier
     }
     // Otherwise treat as slug and look up the actual org ID
