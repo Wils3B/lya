@@ -62,12 +62,13 @@ export class LocaleRepository extends BaseRepository<Locale> {
     }
 
     if (search) {
-      filter['$or'] = [{ code: { $regex: search, $options: 'i' } }, { name: { $regex: search, $options: 'i' } }]
+      const safeSearch = this.escapeRegex(search)
+      filter['$or'] = [{ code: { $regex: safeSearch, $options: 'i' } }, { name: { $regex: safeSearch, $options: 'i' } }]
     }
 
     const [data, total] = await Promise.all([
       mongoRepo.find({ where: filter as never, skip: (page - 1) * limit, take: limit, order: { code: 'asc' } }),
-      mongoRepo.countDocuments(filter),
+      mongoRepo.count(filter as never),
     ])
 
     return new PaginatedResponseDto(data, total, page, limit)
@@ -77,11 +78,16 @@ export class LocaleRepository extends BaseRepository<Locale> {
     if (this.dbType === DatabaseType.MONGODB) {
       const mongoRepo = this.manager.getMongoRepository(Locale)
       for (const locale of locales) {
-        await mongoRepo.updateOne({ code: locale.code }, { $setOnInsert: locale }, { upsert: true })
+        const { code, ...fields } = locale
+        await mongoRepo.updateOne({ code }, { $set: fields }, { upsert: true })
       }
       return
     }
 
     await this.upsert(locales, { conflictPaths: ['code'], skipUpdateIfNoValuesChanged: true })
+  }
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   }
 }
