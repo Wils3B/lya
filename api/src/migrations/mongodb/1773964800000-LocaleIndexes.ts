@@ -10,7 +10,10 @@ export class LocaleIndexes1773964800000 implements MigrationInterface {
     const driver = queryRunner.connection.driver as unknown as MongoDriverShape
     const db = driver.queryRunner.databaseConnection.db()
 
-    await db.createCollection('locale')
+    const existingCollections = await db.listCollections({ name: 'locale' }).toArray()
+    if (existingCollections.length === 0) {
+      await db.createCollection('locale')
+    }
 
     const collection = db.collection('locale')
     const indexes = await collection.indexes()

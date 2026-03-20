@@ -10,7 +10,10 @@ export class InitialIndexes1742252400000 implements MigrationInterface {
     const driver = queryRunner.connection.driver as unknown as MongoDriverShape
     const db = driver.queryRunner.databaseConnection.db()
 
-    await db.createCollection('user')
+    const existingCollections = await db.listCollections({ name: 'user' }).toArray()
+    if (existingCollections.length === 0) {
+      await db.createCollection('user')
+    }
 
     const collection = db.collection('user')
     const indexes = await collection.indexes()
