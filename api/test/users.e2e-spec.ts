@@ -3,13 +3,13 @@ import request from 'supertest'
 import { App } from 'supertest/types'
 import { cleanDatabase, createTestApp, getNonExistentId, seedUser } from './helpers'
 
-const AUTH_USER = { name: 'Auth User', email: 'auth@example.com', password: 'password123' }
+const AUTH_USER = { name: 'Auth User', username: 'auth_user', email: 'auth@example.com', password: 'password123' }
 
 async function getAuthToken(app: INestApplication<App>): Promise<string> {
   await seedUser(app, AUTH_USER)
   const { body } = await request(app.getHttpServer())
     .post('/auth/login')
-    .send({ email: AUTH_USER.email, password: AUTH_USER.password })
+    .send({ identifier: AUTH_USER.email, password: AUTH_USER.password })
     .expect(200)
   return (body as { accessToken: string }).accessToken
 }
@@ -36,11 +36,12 @@ describe('UsersController (e2e)', () => {
       const { body } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       expect(body).toMatchObject({
         name: 'Alice',
+        username: 'alice',
         email: 'alice@example.com',
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -57,7 +58,31 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ email: 'test@example.com', password: 'password123' })
+        .send({ username: 'alice', email: 'test@example.com', password: 'password123' })
+        .expect(400)
+    })
+
+    it('rejects missing username', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice', email: 'test@example.com', password: 'password123' })
+        .expect(400)
+    })
+
+    it('rejects username shorter than 3 characters', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice', username: 'ab', email: 'alice@example.com', password: 'password123' })
+        .expect(400)
+    })
+
+    it('rejects username with invalid characters', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice', username: 'alice smith', email: 'alice@example.com', password: 'password123' })
         .expect(400)
     })
 
@@ -65,7 +90,7 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Bob', email: 'bob@example.com' })
+        .send({ name: 'Bob', username: 'bob', email: 'bob@example.com' })
         .expect(400)
     })
 
@@ -73,7 +98,7 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Bob', email: 'bob@example.com', password: 'short' })
+        .send({ name: 'Bob', username: 'bob', email: 'bob@example.com', password: 'short' })
         .expect(400)
     })
 
@@ -81,7 +106,7 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Bob', email: 'not-an-email', password: 'password123' })
+        .send({ name: 'Bob', username: 'bob', email: 'not-an-email', password: 'password123' })
         .expect(400)
     })
 
@@ -89,13 +114,29 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       const { status } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice 2', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice 2', username: 'alice2', email: 'alice@example.com', password: 'password123' })
+
+      // Unique constraint violation — no global conflict handler yet, so DB throws 500
+      expect(status).toBeGreaterThanOrEqual(400)
+    })
+
+    it('rejects duplicate username', async () => {
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
+        .expect(201)
+
+      const { status } = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice 2', username: 'alice', email: 'alice2@example.com', password: 'password123' })
 
       // Unique constraint violation — no global conflict handler yet, so DB throws 500
       expect(status).toBeGreaterThanOrEqual(400)
@@ -104,7 +145,7 @@ describe('UsersController (e2e)', () => {
     it('rejects request without token', async () => {
       await request(app.getHttpServer())
         .post('/users')
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(401)
     })
   })
@@ -117,7 +158,7 @@ describe('UsersController (e2e)', () => {
         .expect(200)
       expect(body).toHaveProperty('data')
       expect(body.data).toHaveLength(1)
-      expect(body.data[0]).toMatchObject({ name: AUTH_USER.name, email: AUTH_USER.email })
+      expect(body.data[0]).toMatchObject({ name: AUTH_USER.name, username: AUTH_USER.username, email: AUTH_USER.email })
       expect(body.total).toBe(1)
     })
 
@@ -125,12 +166,12 @@ describe('UsersController (e2e)', () => {
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
       await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Bob', email: 'bob@example.com', password: 'password123' })
+        .send({ name: 'Bob', username: 'bob', email: 'bob@example.com', password: 'password123' })
         .expect(201)
 
       const { body } = await request(app.getHttpServer())
@@ -150,14 +191,14 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       const { body } = await request(app.getHttpServer())
         .get(`/users/${created.id}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
-      expect(body).toMatchObject({ name: 'Alice', email: 'alice@example.com' })
+      expect(body).toMatchObject({ name: 'Alice', username: 'alice', email: 'alice@example.com' })
       expect(body.password).toBeUndefined()
     })
 
@@ -181,7 +222,7 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       const { body } = await request(app.getHttpServer())
@@ -198,7 +239,7 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       const { body } = await request(app.getHttpServer())
@@ -210,11 +251,27 @@ describe('UsersController (e2e)', () => {
       expect(body.email).toBe('alice2@example.com')
     })
 
+    it('updates username', async () => {
+      const { body: created } = await request(app.getHttpServer())
+        .post('/users')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
+        .expect(201)
+
+      const { body } = await request(app.getHttpServer())
+        .patch(`/users/${created.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ username: 'alice_v2' })
+        .expect(200)
+
+      expect(body.username).toBe('alice_v2')
+    })
+
     it('strips unknown fields', async () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       const { body } = await request(app.getHttpServer())
@@ -231,7 +288,7 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       // password is stripped by whitelist validation (not in UpdateUserDto)
@@ -256,7 +313,7 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       await request(app.getHttpServer())
@@ -276,7 +333,7 @@ describe('UsersController (e2e)', () => {
       const { body: created } = await request(app.getHttpServer())
         .post('/users')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ name: 'Alice', email: 'alice@example.com', password: 'password123' })
+        .send({ name: 'Alice', username: 'alice', email: 'alice@example.com', password: 'password123' })
         .expect(201)
 
       await request(app.getHttpServer())
