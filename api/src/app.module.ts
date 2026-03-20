@@ -7,6 +7,7 @@ import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import databaseConfig from './config/database.config'
 import { LocalesModule } from './locales/locales.module'
+import { OrganisationsModule } from './organisations/organisations.module'
 import { UsersModule } from './users/users.module'
 
 @Module({
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module'
     CqrsModule.forRoot(),
     AuthModule,
     LocalesModule,
+    OrganisationsModule,
     UsersModule,
   ],
   controllers: [AppController],
