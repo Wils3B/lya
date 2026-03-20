@@ -15,6 +15,7 @@ const mockUser = (overrides: Partial<User> = {}): User =>
   ({
     id: 1,
     email: 'alice@example.com',
+    username: 'alice',
     name: 'Alice',
     password: 'hashed',
     refreshTokenHash: null,
@@ -23,13 +24,13 @@ const mockUser = (overrides: Partial<User> = {}): User =>
 
 describe('AuthService', () => {
   let service: AuthService
-  let userRepository: jest.Mocked<Pick<UserRepository, 'findByEmail' | 'updateRefreshTokenHash'>>
+  let userRepository: jest.Mocked<Pick<UserRepository, 'findByEmailOrUsername' | 'updateRefreshTokenHash'>>
   let jwtService: jest.Mocked<Pick<JwtService, 'sign'>>
   let configService: jest.Mocked<Pick<ConfigService, 'get' | 'getOrThrow'>>
 
   beforeEach(() => {
     userRepository = {
-      findByEmail: jest.fn(),
+      findByEmailOrUsername: jest.fn(),
       updateRefreshTokenHash: jest.fn().mockResolvedValue(undefined),
     }
     jwtService = {
@@ -48,23 +49,32 @@ describe('AuthService', () => {
   })
 
   describe('validateUser', () => {
-    it('returns user when credentials are valid', async () => {
+    it('returns user when credentials are valid with email', async () => {
       const user = mockUser()
-      userRepository.findByEmail.mockResolvedValue(user)
+      userRepository.findByEmailOrUsername.mockResolvedValue(user)
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
       const result = await service.validateUser('alice@example.com', 'password123')
       expect(result).toBe(user)
     })
 
+    it('returns user when credentials are valid with username', async () => {
+      const user = mockUser()
+      userRepository.findByEmailOrUsername.mockResolvedValue(user)
+      ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
+
+      const result = await service.validateUser('alice', 'password123')
+      expect(result).toBe(user)
+    })
+
     it('returns null when user not found', async () => {
-      userRepository.findByEmail.mockResolvedValue(null)
+      userRepository.findByEmailOrUsername.mockResolvedValue(null)
       const result = await service.validateUser('nobody@example.com', 'password123')
       expect(result).toBeNull()
     })
 
     it('returns null when password is invalid', async () => {
-      userRepository.findByEmail.mockResolvedValue(mockUser())
+      userRepository.findByEmailOrUsername.mockResolvedValue(mockUser())
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
       const result = await service.validateUser('alice@example.com', 'wrongpassword')
@@ -72,30 +82,42 @@ describe('AuthService', () => {
     })
 
     it('returns null when user has no password', async () => {
-      userRepository.findByEmail.mockResolvedValue(mockUser({ password: undefined }))
+      userRepository.findByEmailOrUsername.mockResolvedValue(mockUser({ password: undefined }))
       const result = await service.validateUser('alice@example.com', 'password123')
       expect(result).toBeNull()
     })
   })
 
   describe('login', () => {
-    it('returns tokens on valid credentials', async () => {
+    it('returns tokens when logging in with email', async () => {
       const user = mockUser()
-      userRepository.findByEmail.mockResolvedValue(user)
+      userRepository.findByEmailOrUsername.mockResolvedValue(user)
       ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
       ;(bcrypt.hash as jest.Mock).mockResolvedValue('hashed-refresh-token')
 
-      const result = await service.login({ email: 'alice@example.com', password: 'password123' })
+      const result = await service.login({ identifier: 'alice@example.com', password: 'password123' })
 
       expect(result.accessToken).toBeDefined()
       expect(result.refreshToken).toBeDefined()
       expect(userRepository.updateRefreshTokenHash).toHaveBeenCalledWith(user.id, 'hashed-refresh-token')
     })
 
-    it('throws UnauthorizedException on invalid credentials', async () => {
-      userRepository.findByEmail.mockResolvedValue(null)
+    it('returns tokens when logging in with username', async () => {
+      const user = mockUser()
+      userRepository.findByEmailOrUsername.mockResolvedValue(user)
+      ;(bcrypt.compare as jest.Mock).mockResolvedValue(true)
+      ;(bcrypt.hash as jest.Mock).mockResolvedValue('hashed-refresh-token')
 
-      await expect(service.login({ email: 'nobody@example.com', password: 'pass' })).rejects.toThrow(
+      const result = await service.login({ identifier: 'alice', password: 'password123' })
+
+      expect(result.accessToken).toBeDefined()
+      expect(result.refreshToken).toBeDefined()
+    })
+
+    it('throws UnauthorizedException on invalid credentials', async () => {
+      userRepository.findByEmailOrUsername.mockResolvedValue(null)
+
+      await expect(service.login({ identifier: 'nobody@example.com', password: 'pass' })).rejects.toThrow(
         UnauthorizedException
       )
     })

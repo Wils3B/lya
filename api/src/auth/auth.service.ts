@@ -16,7 +16,7 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto): Promise<AuthTokensDto> {
-    const user = await this.validateUser(loginDto.email, loginDto.password)
+    const user = await this.validateUser(loginDto.identifier, loginDto.password)
     if (!user) {
       throw new UnauthorizedException('Invalid credentials')
     }
@@ -27,8 +27,8 @@ export class AuthService {
     return this.issueTokens(user)
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.userRepository.findByEmail(email)
+  async validateUser(identifier: string, password: string): Promise<User | null> {
+    const user = await this.userRepository.findByEmailOrUsername(identifier)
     if (!user?.password) return null
     const isValid = await bcrypt.compare(password, user.password)
     if (!isValid) return null

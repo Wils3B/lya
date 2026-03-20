@@ -4,6 +4,13 @@ export class AddPasswordToUser1742340000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.addColumns('user', [
       new TableColumn({
+        name: 'username',
+        type: 'varchar',
+        length: '255',
+        isNullable: false,
+        isUnique: true,
+      }),
+      new TableColumn({
         name: 'password',
         type: 'varchar',
         length: '255',
@@ -20,6 +27,6 @@ export class AddPasswordToUser1742340000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.dropColumns('user', ['password', 'refreshTokenHash'])
+    await queryRunner.dropColumns('user', ['username', 'password', 'refreshTokenHash'])
   }
 }
