@@ -27,27 +27,39 @@ export class LocaleRepository {
   ): Promise<PaginatedResponseDto<Locale>> {
     if (this.dbType === DatabaseType.MONGODB) {
       const mongoRepo = this.dataSource.getMongoRepository(Locale)
-      const where: Record<string, unknown> = {}
-      if (direction) where['direction'] = direction
+      const filter: Record<string, unknown> = {}
+      if (direction) filter['direction'] = direction
       if (search) {
         const regex = { $regex: search, $options: 'i' }
-        where['$or'] = [{ name: regex }, { nativeName: regex }, { code: regex }]
+        // code is stored as _id in MongoDB — @PrimaryColumn() maps to _id
+        filter['$or'] = [{ name: regex }, { nativeName: regex }, { _id: regex }]
       }
       const [data, total] = await Promise.all([
-        mongoRepo.find({ where: where as never, skip: (page - 1) * limit, take: limit }),
-        mongoRepo.count(where as never),
+        mongoRepo.find({
+          where: filter as never,
+          order: { code: 'ASC' } as never,
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        mongoRepo.count(filter as never),
       ])
       return new PaginatedResponseDto(data, total, page, limit)
     }
 
+    // Postgres LIKE is case-sensitive; ILIKE is the case-insensitive equivalent.
+    // MySQL/MariaDB/SQLite LIKE is case-insensitive by default.
+    const likeOp = this.dbType === DatabaseType.POSTGRES ? 'ILIKE' : 'LIKE'
     const qb = this.repo.createQueryBuilder('locale')
     if (direction) qb.andWhere('locale.direction = :direction', { direction })
     if (search) {
-      qb.andWhere('(locale.name LIKE :search OR locale.nativeName LIKE :search OR locale.code LIKE :search)', {
-        search: `%${search}%`,
-      })
+      qb.andWhere(
+        `(locale.name ${likeOp} :search OR locale.nativeName ${likeOp} :search OR locale.code ${likeOp} :search)`,
+        { search: `%${search}%` }
+      )
     }
-    qb.skip((page - 1) * limit).take(limit)
+    qb.orderBy('locale.code', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit)
     const [data, total] = await qb.getManyAndCount()
     return new PaginatedResponseDto(data, total, page, limit)
   }
@@ -55,28 +67,31 @@ export class LocaleRepository {
   async findAllFiltered(search?: string, direction?: 'ltr' | 'rtl'): Promise<Locale[]> {
     if (this.dbType === DatabaseType.MONGODB) {
       const mongoRepo = this.dataSource.getMongoRepository(Locale)
-      const where: Record<string, unknown> = {}
-      if (direction) where['direction'] = direction
+      const filter: Record<string, unknown> = {}
+      if (direction) filter['direction'] = direction
       if (search) {
         const regex = { $regex: search, $options: 'i' }
-        where['$or'] = [{ name: regex }, { nativeName: regex }, { code: regex }]
+        filter['$or'] = [{ name: regex }, { nativeName: regex }, { _id: regex }]
       }
-      return mongoRepo.find({ where: where as never })
+      return mongoRepo.find({ where: filter as never })
     }
 
+    const likeOp = this.dbType === DatabaseType.POSTGRES ? 'ILIKE' : 'LIKE'
     const qb = this.repo.createQueryBuilder('locale')
     if (direction) qb.andWhere('locale.direction = :direction', { direction })
     if (search) {
-      qb.andWhere('(locale.name LIKE :search OR locale.nativeName LIKE :search OR locale.code LIKE :search)', {
-        search: `%${search}%`,
-      })
+      qb.andWhere(
+        `(locale.name ${likeOp} :search OR locale.nativeName ${likeOp} :search OR locale.code ${likeOp} :search)`,
+        { search: `%${search}%` }
+      )
     }
     return qb.getMany()
   }
 
   findByCode(code: string): Promise<Locale | null> {
     if (this.dbType === DatabaseType.MONGODB) {
-      return this.dataSource.getMongoRepository(Locale).findOne({ where: { code } as never })
+      // @PrimaryColumn() maps to _id in MongoDB — must query by _id, not by property name
+      return this.dataSource.getMongoRepository(Locale).findOne({ where: { _id: code } as never })
     }
     return this.repo.findOne({ where: { code } })
   }
