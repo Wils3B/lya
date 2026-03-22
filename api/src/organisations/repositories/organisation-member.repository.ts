@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { ObjectId } from 'mongodb'
-import { DataSource, FindOptionsWhere } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto'
 import { BaseRepository } from '../../common/repositories/base.repository'
 import { DatabaseType, resolveDatabaseType } from '../../config/database-type.enum'
@@ -49,7 +49,7 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
       where: {
         organisationId: parsedOrgId,
         userId: parsedUserId,
-      } as unknown as FindOptionsWhere<OrganisationMember>,
+      },
     })
   }
 
@@ -78,10 +78,10 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
     if (isNaN(parsedOrgId)) return new PaginatedResponseDto([], 0, page, limit)
 
     const [data, total] = await this.findAndCount({
-      where: { organisationId: parsedOrgId } as unknown as FindOptionsWhere<OrganisationMember>,
+      where: { organisationId: parsedOrgId },
       skip: (page - 1) * limit,
       take: limit,
-      order: { joinedAt: 'ASC' } as Parameters<typeof this.findAndCount>[0]['order'],
+      order: { joinedAt: 'ASC' },
     })
     return new PaginatedResponseDto(data, total, page, limit)
   }
@@ -120,8 +120,8 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
     return this.count({
       where: {
         organisationId: parsedOrgId,
-        role: 'owner',
-      } as unknown as FindOptionsWhere<OrganisationMember>,
+        role: OrganisationRole.OWNER,
+      },
     })
   }
 }
