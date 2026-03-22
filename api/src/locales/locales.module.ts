@@ -10,5 +10,6 @@ import { LocaleRepository } from './repositories/locale.repository'
   imports: [TypeOrmModule.forFeature([Locale])],
   controllers: [LocalesController],
   providers: [LocaleRepository, LocalesSeeder, ...QueryHandlers],
+  exports: [LocaleRepository],
 })
 export class LocalesModule {}

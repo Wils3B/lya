@@ -31,7 +31,7 @@ export class OrganisationRoleGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<Request>()
     const user = request.user as CurrentUserPayload
-    const rawId = request.params['id'] as string
+    const rawId = (request.params['id'] ?? request.params['orgId']) as string
 
     // Resolve the identifier to a numeric/ObjectId string so membership lookup works
     const resolvedId = await this.resolveOrgId(rawId)
