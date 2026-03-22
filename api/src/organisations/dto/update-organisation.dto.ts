@@ -7,10 +7,12 @@ export class UpdateOrganisationDto {
   @IsOptional()
   name?: string
 
-  @ApiPropertyOptional({ description: 'URL-safe slug (lowercase, letters, numbers, hyphens)' })
+  @ApiPropertyOptional({ description: 'URL slug (lowercase letters, numbers and hyphens)' })
   @IsString()
   @IsOptional()
-  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { message: 'slug must be lowercase, alphanumeric, with hyphens only' })
+  @Matches(/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/, {
+    message: 'slug must contain only lowercase letters, numbers and hyphens',
+  })
   slug?: string
 
   @ApiPropertyOptional()

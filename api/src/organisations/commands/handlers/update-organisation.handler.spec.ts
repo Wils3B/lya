@@ -30,7 +30,7 @@ describe('UpdateOrganisationHandler', () => {
     expect(result).toBe(updated)
   })
 
-  it('normalises the slug when provided', async () => {
+  it('passes the slug through as-is when provided', async () => {
     const existing = { id: 1, slug: 'old' } as Organisation
     const orgMerge = jest.fn()
     const orgRepo = {
@@ -40,8 +40,8 @@ describe('UpdateOrganisationHandler', () => {
     } as unknown as OrganisationRepository
 
     const handler = new UpdateOrganisationHandler(orgRepo)
-    await handler.execute(new UpdateOrganisationCommand('1', { slug: 'My New Slug!' }))
+    await handler.execute(new UpdateOrganisationCommand('1', { slug: 'new-slug' }))
 
-    expect(orgMerge).toHaveBeenCalledWith(existing, expect.objectContaining({ slug: 'my-new-slug' }))
+    expect(orgMerge).toHaveBeenCalledWith(existing, expect.objectContaining({ slug: 'new-slug' }))
   })
 })

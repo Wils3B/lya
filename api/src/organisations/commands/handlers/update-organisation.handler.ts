@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs'
 import { Organisation } from '../../entities/organisation.entity'
 import { OrganisationRepository } from '../../repositories/organisation.repository'
-import { generateSlug } from '../../utils/slug'
 import { UpdateOrganisationCommand } from '../update-organisation.command'
 
 @CommandHandler(UpdateOrganisationCommand)
@@ -12,12 +11,7 @@ export class UpdateOrganisationHandler implements ICommandHandler<UpdateOrganisa
     const existing = await this.organisationRepository.findById(command.id)
     if (!existing) return null
 
-    const payload = { ...command.payload }
-    if (payload.slug) {
-      payload.slug = generateSlug(payload.slug)
-    }
-
-    this.organisationRepository.merge(existing, payload)
+    this.organisationRepository.merge(existing, command.payload)
     return this.organisationRepository.save(existing)
   }
 }

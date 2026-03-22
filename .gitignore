@@ -20,3 +20,6 @@ mongodb/data
 *.env
 *.env.local
 *.env.*.local
+
+# Eslintcache
+.eslintcache

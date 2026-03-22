@@ -24,7 +24,7 @@ describe('CreateOrganisationHandler', () => {
     } as unknown as OrganisationMemberRepository
 
     const handler = new CreateOrganisationHandler(orgRepo, memberRepo)
-    const result = await handler.execute(new CreateOrganisationCommand({ name: 'Acme' }, '42'))
+    const result = await handler.execute(new CreateOrganisationCommand({ name: 'Acme', slug: 'acme' }, '42'))
 
     expect(orgCreate).toHaveBeenCalledWith(expect.objectContaining({ name: 'Acme', slug: 'acme' }))
     expect(orgSave).toHaveBeenCalled()
@@ -33,7 +33,7 @@ describe('CreateOrganisationHandler', () => {
     expect(result).toBe(savedOrg)
   })
 
-  it('generates a slug from the name', async () => {
+  it('uses the provided slug as-is', async () => {
     const orgCreate = jest.fn().mockReturnValue({ id: 1 })
     const orgRepo = {
       create: orgCreate,
@@ -45,18 +45,8 @@ describe('CreateOrganisationHandler', () => {
     } as unknown as OrganisationMemberRepository
 
     const handler = new CreateOrganisationHandler(orgRepo, memberRepo)
-    await handler.execute(new CreateOrganisationCommand({ name: 'My Cool Org!' }, '1'))
+    await handler.execute(new CreateOrganisationCommand({ name: 'My Cool Org', slug: 'my-cool-org' }, '1'))
 
     expect(orgCreate).toHaveBeenCalledWith(expect.objectContaining({ slug: 'my-cool-org' }))
-  })
-
-  it('throws BadRequestException when name produces an empty slug', async () => {
-    const orgRepo = {} as unknown as OrganisationRepository
-    const memberRepo = {} as unknown as OrganisationMemberRepository
-
-    const handler = new CreateOrganisationHandler(orgRepo, memberRepo)
-    await expect(handler.execute(new CreateOrganisationCommand({ name: '!!!' }, '1'))).rejects.toThrow(
-      'Organisation name must contain at least one alphanumeric character'
-    )
   })
 })
