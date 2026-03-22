@@ -16,14 +16,14 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
   createMembership(organisationId: string, userId: string, role: OrganisationRole): OrganisationMember {
     if (this.dbType === DatabaseType.MONGODB) {
       return this.create({
-        organisationId: new ObjectId(organisationId) as unknown as number,
-        userId: new ObjectId(userId) as unknown as number,
+        organisationId: new ObjectId(organisationId),
+        userId: new ObjectId(userId),
         role,
       })
     }
     return this.create({
-      organisationId: parseInt(organisationId, 10) as unknown as number,
-      userId: parseInt(userId, 10) as unknown as number,
+      organisationId: parseInt(organisationId, 10),
+      userId: parseInt(userId, 10),
       role,
     })
   }
