@@ -1,16 +1,11 @@
 import { INestApplication } from '@nestjs/common'
 import request from 'supertest'
 import { App } from 'supertest/types'
-import { cleanDatabase, createTestApp, getNonExistentId, seedUser } from './helpers'
+import { cleanDatabase, createTestApp, getNonExistentId, login, seedUser } from './helpers'
 
 const OWNER_USER = { name: 'Owner', username: 'owner_user', email: 'owner@example.com', password: 'password123' }
 const OTHER_USER = { name: 'Other', username: 'other_user', email: 'other@example.com', password: 'password123' }
 const THIRD_USER = { name: 'Third', username: 'third_user', email: 'third@example.com', password: 'password123' }
-
-async function login(app: INestApplication<App>, identifier: string, password: string): Promise<string> {
-  const { body } = await request(app.getHttpServer()).post('/auth/login').send({ identifier, password }).expect(200)
-  return (body as { accessToken: string }).accessToken
-}
 
 async function createOrg(
   app: INestApplication<App>,
