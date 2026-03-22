@@ -57,21 +57,27 @@ describe('OrganisationsController (e2e)', () => {
       const { body } = await request(app.getHttpServer())
         .post('/organisations')
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ name: 'Acme Corp', description: 'A company' })
+        .send({ name: 'Acme Corp', slug: 'acme-corp', description: 'A company' })
         .expect(201)
 
       expect(body).toMatchObject({ name: 'Acme Corp', slug: 'acme-corp', description: 'A company' })
       expect(body.id).toBeDefined()
     })
 
-    it('auto-generates a URL-safe slug from the name', async () => {
-      const { body } = await request(app.getHttpServer())
+    it('rejects missing slug', async () => {
+      await request(app.getHttpServer())
         .post('/organisations')
         .set('Authorization', `Bearer ${ownerToken}`)
-        .send({ name: 'My Cool Org!' })
-        .expect(201)
+        .send({ name: 'Acme Corp' })
+        .expect(400)
+    })
 
-      expect(body.slug).toBe('my-cool-org')
+    it('rejects invalid slug format', async () => {
+      await request(app.getHttpServer())
+        .post('/organisations')
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .send({ name: 'Acme Corp', slug: 'Invalid Slug!' })
+        .expect(400)
     })
 
     it('rejects missing name', async () => {
@@ -83,7 +89,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('rejects request without token', async () => {
-      await request(app.getHttpServer()).post('/organisations').send({ name: 'Acme' }).expect(401)
+      await request(app.getHttpServer()).post('/organisations').send({ name: 'Acme', slug: 'acme' }).expect(401)
     })
   })
 
@@ -91,9 +97,9 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('GET /organisations', () => {
     it('lists only organisations the user belongs to', async () => {
-      await createOrg(app, ownerToken, { name: 'Org A' })
-      await createOrg(app, ownerToken, { name: 'Org B' })
-      await createOrg(app, otherToken, { name: 'Org C' })
+      await createOrg(app, ownerToken, { name: 'Org A', slug: 'org-a' })
+      await createOrg(app, ownerToken, { name: 'Org B', slug: 'org-b' })
+      await createOrg(app, otherToken, { name: 'Org C', slug: 'org-c' })
 
       const { body } = await request(app.getHttpServer())
         .get('/organisations')
@@ -121,7 +127,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('GET /organisations/:id', () => {
     it('returns the organisation by id for a member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       const { body } = await request(app.getHttpServer())
         .get(`/organisations/${org.id}`)
@@ -132,7 +138,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns the organisation by slug for a member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme Slug' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme Slug', slug: 'acme-slug' })
 
       const { body } = await request(app.getHttpServer())
         .get(`/organisations/${org.slug}`)
@@ -143,7 +149,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for a non-member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Private Org' })
+      const org = await createOrg(app, ownerToken, { name: 'Private Org', slug: 'private-org' })
 
       await request(app.getHttpServer())
         .get(`/organisations/${org.id}`)
@@ -165,7 +171,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('PATCH /organisations/:id', () => {
     it('allows owner to update name', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Old Name' })
+      const org = await createOrg(app, ownerToken, { name: 'Old Name', slug: 'old-name' })
 
       const { body } = await request(app.getHttpServer())
         .patch(`/organisations/${org.id}`)
@@ -177,7 +183,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for standard member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       // Invite other user as standard
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
@@ -193,7 +199,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for non-member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .patch(`/organisations/${org.id}`)
@@ -207,7 +213,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('DELETE /organisations/:id', () => {
     it('allows owner to delete organisation', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'To Delete' })
+      const org = await createOrg(app, ownerToken, { name: 'To Delete', slug: 'to-delete' })
 
       await request(app.getHttpServer())
         .delete(`/organisations/${org.id}`)
@@ -221,7 +227,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for non-owner member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -239,7 +245,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('POST /organisations/:id/members', () => {
     it('allows owner to invite a member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       const { body } = await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
@@ -252,7 +258,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 409 when user is already a member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -267,7 +273,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for standard member trying to invite', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -286,7 +292,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('GET /organisations/:id/members', () => {
     it('lists members for a member of the org', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -302,7 +308,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for non-member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .get(`/organisations/${org.id}/members`)
@@ -315,7 +321,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('DELETE /organisations/:id/members/:userId', () => {
     it('allows owner to remove a standard member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -329,7 +335,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 when trying to remove an owner', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .delete(`/organisations/${org.id}/members/${ownerId}`)
@@ -338,7 +344,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 404 when member not found', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .delete(`/organisations/${org.id}/members/${otherId}`)
@@ -351,7 +357,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('PATCH /organisations/:id/members/:userId/role', () => {
     it('allows owner to promote standard to administrator', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -368,7 +374,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it("returns 403 when trying to change an owner's role", async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .patch(`/organisations/${org.id}/members/${ownerId}/role`)
@@ -378,7 +384,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('rejects invalid role value', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -397,7 +403,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('POST /organisations/:id/transfer-ownership', () => {
     it('transfers ownership to an existing member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -423,7 +429,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 404 when target user is not a member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/transfer-ownership`)
@@ -433,7 +439,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for non-owner', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -452,7 +458,7 @@ describe('OrganisationsController (e2e)', () => {
 
   describe('DELETE /organisations/:id/leave', () => {
     it('allows a standard member to leave', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -466,7 +472,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('blocks the last owner from leaving', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .delete(`/organisations/${org.id}/leave`)
@@ -475,7 +481,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('allows an owner to leave when another owner exists', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
       await request(app.getHttpServer())
         .post(`/organisations/${org.id}/members`)
         .set('Authorization', `Bearer ${ownerToken}`)
@@ -497,7 +503,7 @@ describe('OrganisationsController (e2e)', () => {
     })
 
     it('returns 403 for non-member', async () => {
-      const org = await createOrg(app, ownerToken, { name: 'Acme' })
+      const org = await createOrg(app, ownerToken, { name: 'Acme', slug: 'acme' })
 
       await request(app.getHttpServer())
         .delete(`/organisations/${org.id}/leave`)

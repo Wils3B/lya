@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger'
 import { Transform } from 'class-transformer'
 import { ObjectId } from 'mongodb'
 import { Column, CreateDateColumn, Entity } from 'typeorm'
+import { UnifiedForeignKey } from '../../common/decorators/unified-foreign-key.decorator'
 import { BaseEntity } from '../../common/entities/base.entity'
 
 export enum OrganisationRole {
@@ -12,16 +13,15 @@ export enum OrganisationRole {
 
 @Entity()
 export class OrganisationMember extends BaseEntity {
-  // Typed as number for SQL; at MongoDB runtime these may be ObjectId — handled in repository
-  @Column({ type: 'int', nullable: false })
+  @UnifiedForeignKey()
   @ApiProperty({ description: 'Organisation ID' })
-  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : String(value as number)))
-  organisationId: number
+  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : String(value)))
+  organisationId: number | ObjectId
 
-  @Column({ type: 'int', nullable: false })
+  @UnifiedForeignKey()
   @ApiProperty({ description: 'User ID' })
-  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : String(value as number)))
-  userId: number
+  @Transform(({ value }) => (value instanceof ObjectId ? value.toHexString() : String(value)))
+  userId: number | ObjectId
 
   @Column({ type: 'varchar', nullable: false })
   @ApiProperty({ enum: OrganisationRole })
