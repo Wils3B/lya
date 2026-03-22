@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CommandBus, QueryBus } from '@nestjs/cqrs'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { CurrentUser, CurrentUserPayload } from '../auth/decorators/current-user.decorator'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { PaginatedResponseDto } from '../common/dto/paginated-response.dto'
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto'
@@ -50,7 +51,7 @@ export class ProjectsController {
     @Body() dto: CreateProjectDto,
     @CurrentUser() user: CurrentUserPayload
   ): Promise<Project> {
-    return this.commandBus.execute<Project>(new CreateProjectCommand(orgId, dto, user.id))
+    return this.commandBus.execute(new CreateProjectCommand(orgId, dto, user.id))
   }
 
   @ApiOperation({ summary: 'List projects in the organisation visible to the current user' })
@@ -62,9 +63,7 @@ export class ProjectsController {
     @CurrentUser() user: CurrentUserPayload,
     @Query() pagination: PaginationQueryDto
   ): Promise<PaginatedResponseDto<Project>> {
-    return this.queryBus.execute<PaginatedResponseDto<Project>>(
-      new ListProjectsQuery(orgId, user.id, pagination.page, pagination.limit)
-    )
+    return this.queryBus.execute(new ListProjectsQuery(orgId, user.id, pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Get a project by ID or slug' })
@@ -72,7 +71,7 @@ export class ProjectsController {
   @RequiredProjectRole(ProjectRole.CONTRIBUTOR)
   @Get(':projectId')
   async findOne(@Param('projectId') projectId: string): Promise<Project> {
-    const project = await this.queryBus.execute<Project | null>(new GetProjectQuery(projectId))
+    const project = await this.queryBus.execute(new GetProjectQuery(projectId))
     if (!project) throw new NotFoundException(`Project ${projectId} not found`)
     return project
   }
@@ -86,7 +85,7 @@ export class ProjectsController {
     @Param('projectId') projectId: string,
     @Body() dto: UpdateProjectDto
   ): Promise<Project> {
-    const project = await this.commandBus.execute<Project | null>(new UpdateProjectCommand(projectId, orgId, dto))
+    const project = await this.commandBus.execute(new UpdateProjectCommand(projectId, orgId, dto))
     if (!project) throw new NotFoundException(`Project ${projectId} not found`)
     return project
   }
@@ -96,7 +95,7 @@ export class ProjectsController {
   @RequiredOrgRole(OrganisationRole.ADMINISTRATOR)
   @Delete(':projectId')
   async remove(@Param('orgId') orgId: string, @Param('projectId') projectId: string): Promise<Project> {
-    const project = await this.commandBus.execute<Project | null>(new DeleteProjectCommand(projectId, orgId))
+    const project = await this.commandBus.execute(new DeleteProjectCommand(projectId, orgId))
     if (!project) throw new NotFoundException(`Project ${projectId} not found`)
     return project
   }
@@ -111,9 +110,7 @@ export class ProjectsController {
     @Param('projectId') projectId: string,
     @Query() pagination: PaginationQueryDto
   ): Promise<PaginatedResponseDto<ProjectLocale>> {
-    return this.queryBus.execute<PaginatedResponseDto<ProjectLocale>>(
-      new ListProjectLocalesQuery(projectId, pagination.page, pagination.limit)
-    )
+    return this.queryBus.execute(new ListProjectLocalesQuery(projectId, pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Add a locale to the project' })
@@ -121,7 +118,7 @@ export class ProjectsController {
   @RequiredProjectRole(ProjectRole.MAINTAINER)
   @Post(':projectId/locales')
   addLocale(@Param('projectId') projectId: string, @Body() dto: AddLocaleDto): Promise<ProjectLocale> {
-    return this.commandBus.execute<ProjectLocale>(new AddLocaleCommand(projectId, dto.localeCode))
+    return this.commandBus.execute(new AddLocaleCommand(projectId, dto.localeCode))
   }
 
   @ApiOperation({ summary: 'Remove a locale from the project' })
@@ -132,7 +129,7 @@ export class ProjectsController {
     @Param('projectId') projectId: string,
     @Param('localeCode') localeCode: string
   ): Promise<ProjectLocale> {
-    const locale = await this.commandBus.execute<ProjectLocale | null>(new RemoveLocaleCommand(projectId, localeCode))
+    const locale = await this.commandBus.execute(new RemoveLocaleCommand(projectId, localeCode))
     if (!locale) throw new NotFoundException(`Locale '${localeCode}' is not set on this project`)
     return locale
   }
@@ -147,9 +144,7 @@ export class ProjectsController {
     @Param('projectId') projectId: string,
     @Query() pagination: PaginationQueryDto
   ): Promise<PaginatedResponseDto<ProjectMember>> {
-    return this.queryBus.execute<PaginatedResponseDto<ProjectMember>>(
-      new ListProjectMembersQuery(projectId, pagination.page, pagination.limit)
-    )
+    return this.queryBus.execute(new ListProjectMembersQuery(projectId, pagination.page, pagination.limit))
   }
 
   @ApiOperation({ summary: 'Add a member to the project' })
@@ -157,9 +152,7 @@ export class ProjectsController {
   @RequiredProjectRole(ProjectRole.MAINTAINER)
   @Post(':projectId/members')
   addMember(@Param('projectId') projectId: string, @Body() dto: AddMemberDto): Promise<ProjectMember> {
-    return this.commandBus.execute<ProjectMember>(
-      new AddMemberCommand(projectId, dto.userId, dto.role ?? ProjectRole.CONTRIBUTOR)
-    )
+    return this.commandBus.execute(new AddMemberCommand(projectId, dto.userId, dto.role ?? ProjectRole.CONTRIBUTOR))
   }
 
   @ApiOperation({ summary: 'Remove a member from the project' })
@@ -167,7 +160,7 @@ export class ProjectsController {
   @RequiredProjectRole(ProjectRole.MAINTAINER)
   @Delete(':projectId/members/:userId')
   async removeMember(@Param('projectId') projectId: string, @Param('userId') userId: string): Promise<ProjectMember> {
-    const member = await this.commandBus.execute<ProjectMember | null>(new RemoveMemberCommand(projectId, userId))
+    const member = await this.commandBus.execute(new RemoveMemberCommand(projectId, userId))
     if (!member) throw new NotFoundException(`User ${userId} is not a member of this project`)
     return member
   }
@@ -181,9 +174,7 @@ export class ProjectsController {
     @Param('userId') userId: string,
     @Body() dto: UpdateProjectMemberRoleDto
   ): Promise<ProjectMember> {
-    const member = await this.commandBus.execute<ProjectMember | null>(
-      new UpdateMemberRoleCommand(projectId, userId, dto.role)
-    )
+    const member = await this.commandBus.execute(new UpdateMemberRoleCommand(projectId, userId, dto.role))
     if (!member) throw new NotFoundException(`User ${userId} is not a member of this project`)
     return member
   }
