@@ -62,7 +62,7 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
       try {
         const orgObjectId = new ObjectId(organisationId)
         const mongoRepo = this.manager.getMongoRepository(OrganisationMember)
-        const total = await mongoRepo.count({ where: { organisationId: orgObjectId } as never })
+        const total = await mongoRepo.count({ organisationId: orgObjectId })
         const data = await mongoRepo.find({
           where: { organisationId: orgObjectId } as never,
           skip: (page - 1) * limit,
@@ -106,9 +106,9 @@ export class OrganisationMemberRepository extends BaseRepository<OrganisationMem
     if (this.dbType === DatabaseType.MONGODB) {
       try {
         const orgObjectId = new ObjectId(organisationId)
-        return this.manager.getMongoRepository(OrganisationMember).count({
-          where: { organisationId: orgObjectId, role: 'owner' } as never,
-        })
+        return this.manager
+          .getMongoRepository(OrganisationMember)
+          .count({ organisationId: orgObjectId, role: OrganisationRole.OWNER })
       } catch {
         return 0
       }

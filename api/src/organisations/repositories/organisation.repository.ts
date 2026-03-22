@@ -85,7 +85,7 @@ export class OrganisationRepository extends BaseRepository<Organisation> {
 
     const memberRepo = this.manager.getMongoRepository('organisation_member')
     const where = { userId: userObjectId } as never
-    const total = await memberRepo.count({ where })
+    const total = await memberRepo.count(where)
     const paged = await memberRepo.find({ where, skip: (page - 1) * limit, take: limit })
     const orgIds = (paged as { organisationId: ObjectId }[]).map((m) => m.organisationId)
     const orgs = await this.findByIds(orgIds)

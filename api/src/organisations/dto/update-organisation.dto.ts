@@ -1,24 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsOptional, IsString, Matches, MaxLength, MinLength } from 'class-validator'
+import { PartialType } from '@nestjs/swagger'
+import { CreateOrganisationDto } from './create-organisation.dto'
 
-export class UpdateOrganisationDto {
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  name?: string
-
-  @ApiPropertyOptional({ description: 'URL slug (lowercase letters, numbers and hyphens)' })
-  @IsString()
-  @IsOptional()
-  @Matches(/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/, {
-    message: 'slug must contain only lowercase letters, numbers and hyphens',
-  })
-  @MinLength(3)
-  @MaxLength(25)
-  slug?: string
-
-  @ApiPropertyOptional()
-  @IsString()
-  @IsOptional()
-  description?: string
-}
+export class UpdateOrganisationDto extends PartialType(CreateOrganisationDto) {}
