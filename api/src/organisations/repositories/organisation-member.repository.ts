@@ -1,0 +1,127 @@
+import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { ObjectId } from 'mongodb'
+import { DataSource } from 'typeorm'
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto'
+import { BaseRepository } from '../../common/repositories/base.repository'
+import { DatabaseType, resolveDatabaseType } from '../../config/database-type.enum'
+import { OrganisationMember, OrganisationRole } from '../entities/organisation-member.entity'
+
+@Injectable()
+export class OrganisationMemberRepository extends BaseRepository<OrganisationMember> {
+  constructor(dataSource: DataSource, configService: ConfigService) {
+    super(OrganisationMember, dataSource.manager, resolveDatabaseType(configService.get<string>('LYA_DB_TYPE')))
+  }
+
+  createMembership(organisationId: string, userId: string, role: OrganisationRole): OrganisationMember {
+    if (this.dbType === DatabaseType.MONGODB) {
+      return this.create({
+        organisationId: new ObjectId(organisationId),
+        userId: new ObjectId(userId),
+        role,
+      })
+    }
+    return this.create({
+      organisationId: parseInt(organisationId, 10),
+      userId: parseInt(userId, 10),
+      role,
+    })
+  }
+
+  findMembership(organisationId: string, userId: string): Promise<OrganisationMember | null> {
+    if (this.dbType === DatabaseType.MONGODB) {
+      try {
+        const orgObjectId = new ObjectId(organisationId)
+        const userObjectId = new ObjectId(userId)
+        return this.manager
+          .getMongoRepository(OrganisationMember)
+          .findOne({ where: { organisationId: orgObjectId, userId: userObjectId } as never })
+      } catch {
+        return Promise.resolve(null)
+      }
+    }
+
+    const parsedOrgId = parseInt(organisationId, 10)
+    const parsedUserId = parseInt(userId, 10)
+    if (isNaN(parsedOrgId) || isNaN(parsedUserId)) return Promise.resolve(null)
+
+    return this.findOne({
+      where: {
+        organisationId: parsedOrgId,
+        userId: parsedUserId,
+      },
+    })
+  }
+
+  async findPaginatedByOrgId(
+    organisationId: string,
+    page: number,
+    limit: number
+  ): Promise<PaginatedResponseDto<OrganisationMember>> {
+    if (this.dbType === DatabaseType.MONGODB) {
+      try {
+        const orgObjectId = new ObjectId(organisationId)
+        const mongoRepo = this.manager.getMongoRepository(OrganisationMember)
+        const total = await mongoRepo.count({ organisationId: orgObjectId })
+        const data = await mongoRepo.find({
+          where: { organisationId: orgObjectId } as never,
+          skip: (page - 1) * limit,
+          take: limit,
+        })
+        return new PaginatedResponseDto(data, total, page, limit)
+      } catch {
+        return new PaginatedResponseDto([], 0, page, limit)
+      }
+    }
+
+    const parsedOrgId = parseInt(organisationId, 10)
+    if (isNaN(parsedOrgId)) return new PaginatedResponseDto([], 0, page, limit)
+
+    const [data, total] = await this.findAndCount({
+      where: { organisationId: parsedOrgId },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { joinedAt: 'ASC' },
+    })
+    return new PaginatedResponseDto(data, total, page, limit)
+  }
+
+  async deleteByOrganisationId(organisationId: string): Promise<void> {
+    if (this.dbType === DatabaseType.MONGODB) {
+      try {
+        const orgObjectId = new ObjectId(organisationId)
+        await this.manager.getMongoRepository(OrganisationMember).deleteMany({ organisationId: orgObjectId })
+      } catch {
+        // invalid id, nothing to delete
+      }
+      return
+    }
+
+    const parsedOrgId = parseInt(organisationId, 10)
+    if (isNaN(parsedOrgId)) return
+    await this.createQueryBuilder().delete().where('organisationId = :id', { id: parsedOrgId }).execute()
+  }
+
+  async countOwnersByOrgId(organisationId: string): Promise<number> {
+    if (this.dbType === DatabaseType.MONGODB) {
+      try {
+        const orgObjectId = new ObjectId(organisationId)
+        return this.manager
+          .getMongoRepository(OrganisationMember)
+          .count({ organisationId: orgObjectId, role: OrganisationRole.OWNER })
+      } catch {
+        return 0
+      }
+    }
+
+    const parsedOrgId = parseInt(organisationId, 10)
+    if (isNaN(parsedOrgId)) return 0
+
+    return this.count({
+      where: {
+        organisationId: parsedOrgId,
+        role: OrganisationRole.OWNER,
+      },
+    })
+  }
+}

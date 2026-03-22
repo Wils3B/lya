@@ -4,6 +4,7 @@ import { DatabaseType, resolveDatabaseType } from './database-type.enum'
 
 export function buildDataSourceOptions(type?: string): DataSourceOptions {
   const dbType = resolveDatabaseType(type)
+  const logger = process.env.CI === 'true' ? ('file' as const) : ('advanced-console' as const)
 
   const commonConfig = {
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
@@ -11,6 +12,7 @@ export function buildDataSourceOptions(type?: string): DataSourceOptions {
     migrationsRun: true,
     synchronize: false,
     logging: process.env.NODE_ENV !== 'production',
+    logger,
   }
 
   switch (dbType) {
