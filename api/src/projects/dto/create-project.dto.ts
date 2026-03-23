@@ -10,7 +10,7 @@ export class CreateProjectDto {
   @IsString()
   @MinLength(3)
   @MaxLength(50)
-  @Matches(/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/, {
+  @Matches(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, {
     message: 'slug must be lowercase alphanumeric and hyphens, start and end with alphanumeric',
   })
   @ApiProperty({ description: 'Unique slug within the organisation (lowercase, alphanumeric, hyphens)' })

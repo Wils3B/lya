@@ -51,6 +51,7 @@ export class ProjectRepository extends BaseRepository<Project> {
           where: { organisationId: orgObjectId } as never,
           skip: (page - 1) * limit,
           take: limit,
+          order: { createdAt: 'DESC' } as never,
         })
         return new PaginatedResponseDto(data, total, page, limit)
       } catch {
@@ -72,27 +73,38 @@ export class ProjectRepository extends BaseRepository<Project> {
 
   async findPaginatedByProjectIds(
     projectIds: (number | ObjectId)[],
+    organisationId: string,
     page: number,
     limit: number
   ): Promise<PaginatedResponseDto<Project>> {
     if (projectIds.length === 0) return new PaginatedResponseDto([], 0, page, limit)
 
     if (this.dbType === DatabaseType.MONGODB) {
-      const objectIds = projectIds.map((id) => (id instanceof ObjectId ? id : new ObjectId(String(id))))
-      const mongoRepo = this.manager.getMongoRepository(Project)
-      const total = await mongoRepo.count({ _id: { $in: objectIds } } as never)
-      const data = await mongoRepo.find({
-        where: { _id: { $in: objectIds } } as never,
-        skip: (page - 1) * limit,
-        take: limit,
-      })
-      return new PaginatedResponseDto(data, total, page, limit)
+      try {
+        const orgObjectId = new ObjectId(organisationId)
+        const objectIds = projectIds.map((id) => (id instanceof ObjectId ? id : new ObjectId(String(id))))
+        const mongoRepo = this.manager.getMongoRepository(Project)
+        const filter = { _id: { $in: objectIds }, organisationId: orgObjectId } as never
+        const total = await mongoRepo.count(filter)
+        const data = await mongoRepo.find({
+          where: filter,
+          skip: (page - 1) * limit,
+          take: limit,
+          order: { createdAt: 'DESC' } as never,
+        })
+        return new PaginatedResponseDto(data, total, page, limit)
+      } catch {
+        return new PaginatedResponseDto([], 0, page, limit)
+      }
     }
+
+    const parsedOrgId = parseInt(organisationId, 10)
+    if (isNaN(parsedOrgId)) return new PaginatedResponseDto([], 0, page, limit)
 
     const numericIds = projectIds.map((id) => (typeof id === 'number' ? id : parseInt(String(id), 10)))
     const [data, total] = await this.manager.connection
       .createQueryBuilder(Project, 'project')
-      .where('project.id IN (:...ids)', { ids: numericIds })
+      .where('project.organisationId = :orgId AND project.id IN (:...ids)', { orgId: parsedOrgId, ids: numericIds })
       .orderBy('project.createdAt', 'DESC')
       .skip((page - 1) * limit)
       .take(limit)

@@ -6,7 +6,7 @@ import { DeleteProjectCommand } from '../delete-project.command'
 import { DeleteProjectHandler } from './delete-project.handler'
 
 describe('DeleteProjectHandler', () => {
-  const project = { id: 1 } as Project
+  const project = { id: 1, organisationId: 10 } as unknown as Project
 
   function makeRepos(projectFound = true) {
     const findById = jest.fn().mockResolvedValue(projectFound ? project : null)

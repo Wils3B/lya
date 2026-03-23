@@ -16,6 +16,7 @@ export class DeleteProjectHandler implements ICommandHandler<DeleteProjectComman
   async execute(command: DeleteProjectCommand): Promise<Project | null> {
     const project = await this.projectRepository.findById(command.projectId)
     if (!project) return null
+    if (String(project.organisationId) !== command.organisationId) return null
 
     await this.localeRepository.deleteByProjectId(command.projectId)
     await this.memberRepository.deleteByProjectId(command.projectId)

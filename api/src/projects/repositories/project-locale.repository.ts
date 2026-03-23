@@ -51,6 +51,7 @@ export class ProjectLocaleRepository extends BaseRepository<ProjectLocale> {
           where: { projectId: projectObjectId } as never,
           skip: (page - 1) * limit,
           take: limit,
+          order: { addedAt: 'ASC' } as never,
         })
         return new PaginatedResponseDto(data, total, page, limit)
       } catch {

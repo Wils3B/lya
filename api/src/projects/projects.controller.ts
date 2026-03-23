@@ -117,8 +117,10 @@ export class ProjectsController {
   @UseGuards(ProjectRoleGuard)
   @RequiredProjectRole(ProjectRole.MAINTAINER)
   @Post(':projectId/locales')
-  addLocale(@Param('projectId') projectId: string, @Body() dto: AddLocaleDto): Promise<ProjectLocale> {
-    return this.commandBus.execute(new AddLocaleCommand(projectId, dto.localeCode))
+  async addLocale(@Param('projectId') projectId: string, @Body() dto: AddLocaleDto): Promise<ProjectLocale> {
+    const locale = await this.commandBus.execute(new AddLocaleCommand(projectId, dto.localeCode))
+    if (!locale) throw new NotFoundException(`Locale '${dto.localeCode}' is not supported`)
+    return locale
   }
 
   @ApiOperation({ summary: 'Remove a locale from the project' })

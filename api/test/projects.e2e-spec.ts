@@ -87,7 +87,7 @@ describe('ProjectsController (e2e)', () => {
   // ─── POST /organisations/:orgId/projects ─────────────────────────────────────
 
   describe('POST /organisations/:orgId/projects', () => {
-    it('allows org member to create a project and become maintainer', async () => {
+    it('allows org owner to create a project and become maintainer', async () => {
       const { body } = await request(app.getHttpServer())
         .post(`/organisations/${orgId}/projects`)
         .set('Authorization', `Bearer ${ownerToken}`)

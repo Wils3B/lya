@@ -27,8 +27,8 @@ export class ListProjectsHandler implements IQueryHandler<ListProjectsQuery, Pag
       return this.projectRepository.findPaginatedByOrganisationId(organisationId, page, limit)
     }
 
-    // Standard members see only projects they're explicitly added to
+    // Standard members see only projects they're explicitly added to (scoped to this org)
     const projectIds = await this.projectMemberRepository.findProjectIdsByUserId(userId)
-    return this.projectRepository.findPaginatedByProjectIds(projectIds, page, limit)
+    return this.projectRepository.findPaginatedByProjectIds(projectIds, organisationId, page, limit)
   }
 }

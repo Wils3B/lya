@@ -47,7 +47,7 @@ describe('ListProjectsHandler', () => {
 
     const result = await handler.execute(new ListProjectsQuery('10', '42', 1, 20))
     expect(findProjectIdsByUserId).toHaveBeenCalledWith('42')
-    expect(findByProjectIds).toHaveBeenCalledWith([1, 2], 1, 20)
+    expect(findByProjectIds).toHaveBeenCalledWith([1, 2], '10', 1, 20)
     expect(result).toBe(myProjects)
   })
 
@@ -56,7 +56,7 @@ describe('ListProjectsHandler', () => {
     const handler = new ListProjectsHandler(projectRepo, projectMemberRepo, orgMemberRepo)
 
     const result = await handler.execute(new ListProjectsQuery('10', '42', 1, 20))
-    expect(findByProjectIds).toHaveBeenCalled()
+    expect(findByProjectIds).toHaveBeenCalledWith(expect.any(Array), '10', 1, 20)
     expect(result).toBe(myProjects)
   })
 })

@@ -7,6 +7,7 @@ import { OrganisationMemberRepository } from '../../organisations/repositories/o
 import { OrganisationRepository } from '../../organisations/repositories/organisation.repository'
 import { REQUIRED_PROJECT_ROLE_KEY } from '../decorators/required-project-role.decorator'
 import { ProjectRole } from '../entities/project-role.enum'
+import { Project } from '../entities/project.entity'
 import { ProjectMemberRepository } from '../repositories/project-member.repository'
 import { ProjectRepository } from '../repositories/project.repository'
 
@@ -43,27 +44,31 @@ export class ProjectRoleGuard implements CanActivate {
       throw new ForbiddenException('You do not have access to this project')
     }
 
+    // Write back the resolved org ID so downstream controllers/handlers always receive
+    // the actual numeric/ObjectId, not a slug
+    request.params['orgId'] = resolvedOrgId
+
     const orgMember = await this.orgMemberRepository.findMembership(resolvedOrgId, user.id)
     if (!orgMember) {
       throw new ForbiddenException('You do not have access to this project')
     }
 
-    // Org owners and administrators have implicit full access to all projects
+    // Always resolve the project and verify it belongs to this organisation
+    const project = await this.resolveProject(resolvedOrgId, rawProjectId)
+    if (!project) {
+      throw new ForbiddenException('You do not have access to this project')
+    }
+
+    // Write back the resolved project ID so downstream handlers always receive the actual ID
+    request.params['projectId'] = String(project.id)
+
+    // Org owners and administrators have implicit full access to all projects in their org
     if (orgMember.role === OrganisationRole.OWNER || orgMember.role === OrganisationRole.ADMINISTRATOR) {
       return true
     }
 
     // Standard org members must have an explicit project membership that meets the required role
-    if (!rawProjectId) {
-      throw new ForbiddenException('You do not have access to this project')
-    }
-
-    const resolvedProjectId = await this.resolveProjectId(resolvedOrgId, rawProjectId)
-    if (!resolvedProjectId) {
-      throw new ForbiddenException('You do not have access to this project')
-    }
-
-    const projectMember = await this.projectMemberRepository.findMembership(resolvedProjectId, user.id)
+    const projectMember = await this.projectMemberRepository.findMembership(String(project.id), user.id)
     if (!projectMember) {
       throw new ForbiddenException('You do not have access to this project')
     }
@@ -84,12 +89,23 @@ export class ProjectRoleGuard implements CanActivate {
     return String(org.id)
   }
 
-  private async resolveProjectId(organisationId: string, identifier: string): Promise<string | null> {
+  /**
+   * Resolves a project identifier (ID or slug) to a Project entity, and verifies
+   * that it belongs to the given organisation. Returns null if not found or if
+   * the project belongs to a different organisation.
+   */
+  private async resolveProject(organisationId: string, identifier: string): Promise<Project | null> {
+    let project: Project | null
+
     if (/^\d+$/.test(identifier) || /^[a-f0-9]{24}$/i.test(identifier)) {
-      return identifier
+      project = await this.projectRepository.findById(identifier)
+    } else {
+      project = await this.projectRepository.findBySlug(organisationId, identifier)
     }
-    const project = await this.projectRepository.findBySlug(organisationId, identifier)
+
     if (!project) return null
-    return String(project.id)
+    if (String(project.organisationId) !== organisationId) return null
+
+    return project
   }
 }

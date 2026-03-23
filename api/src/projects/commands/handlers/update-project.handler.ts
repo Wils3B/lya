@@ -13,6 +13,7 @@ export class UpdateProjectHandler implements ICommandHandler<UpdateProjectComman
 
     const project = await this.projectRepository.findById(projectId)
     if (!project) return null
+    if (String(project.organisationId) !== organisationId) return null
 
     if (payload.slug && payload.slug !== project.slug) {
       const conflicting = await this.projectRepository.findBySlug(organisationId, payload.slug)

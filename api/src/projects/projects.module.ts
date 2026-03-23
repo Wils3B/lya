@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common'
-import { CqrsModule } from '@nestjs/cqrs'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { LocalesModule } from '../locales/locales.module'
 import { OrganisationsModule } from '../organisations/organisations.module'
@@ -15,12 +14,7 @@ import { ProjectMemberRepository } from './repositories/project-member.repositor
 import { ProjectRepository } from './repositories/project.repository'
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Project, ProjectLocale, ProjectMember]),
-    CqrsModule,
-    OrganisationsModule,
-    LocalesModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Project, ProjectLocale, ProjectMember]), OrganisationsModule, LocalesModule],
   controllers: [ProjectsController],
   providers: [
     ProjectRepository,

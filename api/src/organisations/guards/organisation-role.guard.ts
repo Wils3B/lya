@@ -31,13 +31,18 @@ export class OrganisationRoleGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest<Request>()
     const user = request.user as CurrentUserPayload
-    const rawId = (request.params['id'] ?? request.params['orgId']) as string
+    const paramKey = request.params['orgId'] !== undefined ? 'orgId' : 'id'
+    const rawId = request.params[paramKey] as string
 
     // Resolve the identifier to a numeric/ObjectId string so membership lookup works
     const resolvedId = await this.resolveOrgId(rawId)
     if (!resolvedId) {
       throw new ForbiddenException('You are not a member of this organisation')
     }
+
+    // Write back the resolved ID so downstream controllers/handlers always receive
+    // the actual numeric/ObjectId, not a slug
+    request.params[paramKey] = resolvedId
 
     const member = await this.memberRepository.findMembership(resolvedId, user.id)
     if (!member) {

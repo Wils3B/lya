@@ -68,6 +68,7 @@ export class ProjectMemberRepository extends BaseRepository<ProjectMember> {
           where: { projectId: projectObjectId } as never,
           skip: (page - 1) * limit,
           take: limit,
+          order: { joinedAt: 'ASC' } as never,
         })
         return new PaginatedResponseDto(data, total, page, limit)
       } catch {

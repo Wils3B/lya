@@ -1,4 +1,4 @@
-import { ConflictException, NotFoundException } from '@nestjs/common'
+import { ConflictException } from '@nestjs/common'
 import { Locale } from '../../../locales/entities/locale.entity'
 import { LocaleRepository } from '../../../locales/repositories/locale.repository'
 import { ProjectLocale } from '../../entities/project-locale.entity'
@@ -49,16 +49,16 @@ describe('AddLocaleHandler', () => {
     expect(result).toBe(projectLocale)
   })
 
-  it('throws NotFoundException when project does not exist', async () => {
+  it('returns null when project does not exist', async () => {
     const { projectRepo, localeRepo, projectLocaleRepo } = makeRepos({ project: null })
     const handler = new AddLocaleHandler(projectRepo, projectLocaleRepo, localeRepo)
-    await expect(handler.execute(new AddLocaleCommand('1', 'en'))).rejects.toThrow(NotFoundException)
+    await expect(handler.execute(new AddLocaleCommand('1', 'en'))).resolves.toBeNull()
   })
 
-  it('throws NotFoundException when locale code is not supported', async () => {
+  it('returns null when locale code is not supported', async () => {
     const { projectRepo, localeRepo, projectLocaleRepo } = makeRepos({ locale: null })
     const handler = new AddLocaleHandler(projectRepo, projectLocaleRepo, localeRepo)
-    await expect(handler.execute(new AddLocaleCommand('1', 'xx'))).rejects.toThrow(NotFoundException)
+    await expect(handler.execute(new AddLocaleCommand('1', 'xx'))).resolves.toBeNull()
   })
 
   it('throws ConflictException when locale already added', async () => {
