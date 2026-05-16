@@ -1,4 +1,3 @@
-export { GetProjectBySlugQuery } from './get-project-by-slug.query'
 export { GetProjectQuery } from './get-project.query'
 export { ListProjectLocalesQuery } from './list-project-locales.query'
 export { ListProjectMembersQuery } from './list-project-members.query'
