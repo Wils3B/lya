@@ -18,7 +18,7 @@ function setupSwagger(app: INestApplication) {
     .build()
 
   const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('/', app, document)
+  SwaggerModule.setup('/', app, document, { jsonDocumentUrl: 'swagger/json' })
 }
 
 async function bootstrap() {
