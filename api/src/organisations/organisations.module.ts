@@ -19,5 +19,6 @@ import { OrganisationRepository } from './repositories/organisation.repository'
     ...CommandHandlers,
     ...QueryHandlers,
   ],
+  exports: [OrganisationRepository, OrganisationMemberRepository, OrganisationRoleGuard],
 })
 export class OrganisationsModule {}
