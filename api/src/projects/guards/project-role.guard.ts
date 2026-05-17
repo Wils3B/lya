@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
 import { CurrentUserPayload } from '../../auth/decorators/current-user.decorator'
@@ -53,9 +53,14 @@ export class ProjectRoleGuard implements CanActivate {
       throw new ForbiddenException('You do not have access to this project')
     }
 
+    const isOrgAdmin = orgMember.role === OrganisationRole.OWNER || orgMember.role === OrganisationRole.ADMINISTRATOR
+
     // Always resolve the project and verify it belongs to this organisation
     const project = await this.resolveProject(resolvedOrgId, rawProjectId)
     if (!project) {
+      // Org admins see all projects in their org — a missing project is truly not found
+      if (isOrgAdmin) throw new NotFoundException('Project not found')
+      // Standard members: don't reveal whether the project exists but is inaccessible
       throw new ForbiddenException('You do not have access to this project')
     }
 
@@ -63,7 +68,7 @@ export class ProjectRoleGuard implements CanActivate {
     request.params['projectId'] = String(project.id)
 
     // Org owners and administrators have implicit full access to all projects in their org
-    if (orgMember.role === OrganisationRole.OWNER || orgMember.role === OrganisationRole.ADMINISTRATOR) {
+    if (isOrgAdmin) {
       return true
     }
 

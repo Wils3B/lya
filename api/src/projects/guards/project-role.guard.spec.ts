@@ -1,4 +1,4 @@
-import { ExecutionContext, ForbiddenException } from '@nestjs/common'
+import { ExecutionContext, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { OrganisationRole } from '../../organisations/entities/organisation-member.entity'
 import { OrganisationMemberRepository } from '../../organisations/repositories/organisation-member.repository'
@@ -77,6 +77,23 @@ describe('ProjectRoleGuard', () => {
   it('throws ForbiddenException when user has no org membership', async () => {
     const { guard } = makeGuard({ orgMemberRepo: { findMembership: jest.fn().mockResolvedValue(null) } })
     const ctx = makeContext({ orgId: '10', projectId: '5' })
+    await expect(guard.canActivate(ctx)).rejects.toThrow(ForbiddenException)
+  })
+
+  it('throws NotFoundException when org admin requests a non-existent project', async () => {
+    const { guard } = makeGuard({
+      orgMemberRepo: { findMembership: jest.fn().mockResolvedValue({ role: OrganisationRole.OWNER }) },
+      projectRepo: { findById: jest.fn().mockResolvedValue(null) },
+    })
+    const ctx = makeContext({ orgId: '10', projectId: '9999' })
+    await expect(guard.canActivate(ctx)).rejects.toThrow(NotFoundException)
+  })
+
+  it('throws ForbiddenException (not 404) when standard member requests a non-existent project', async () => {
+    const { guard } = makeGuard({
+      projectRepo: { findById: jest.fn().mockResolvedValue(null) },
+    })
+    const ctx = makeContext({ orgId: '10', projectId: '9999' })
     await expect(guard.canActivate(ctx)).rejects.toThrow(ForbiddenException)
   })
 
