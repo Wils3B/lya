@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { CommandBus, QueryBus } from '@nestjs/cqrs'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
 import { CurrentUser } from '../auth/decorators/current-user.decorator'
 import type { CurrentUserPayload } from '../auth/decorators/current-user.decorator'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -35,6 +35,7 @@ import { GetProjectQuery, ListProjectLocalesQuery, ListProjectMembersQuery, List
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @ApiTags('projects')
+@ApiParam({ name: 'orgId', description: 'Organisation ID or slug' })
 @Controller('organisations/:orgId/projects')
 export class ProjectsController {
   constructor(
